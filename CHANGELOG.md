@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.0
+
+- Promozione di VETUSTUS Micro alla prima versione definitiva.
+- Aggiunta registrazione anonima del primo utilizzo verso `https://vxd.mobi/vetustus/api/register-micro.php`.
+- La registrazione genera un UUID casuale locale, non usa IMEI, Android ID o account Google e non blocca mai l'app.
+- Payload minimale: prodotto, install ID casuale, versione e piattaforma.
+- Dopo una risposta `{"ok":true}` l'installazione viene marcata localmente come registrata e non viene più conteggiata.
+- In caso di server non raggiungibile, l'app continua normalmente e ritenta dopo almeno un'ora.
+- Aggiunto riferimento ufficiale cliccabile a `vxd.mobi` nelle Informazioni.
+- Mantiene ricerca XDCC, download DCC, code parallele, priorità ai bot pronti, TLS/fallback controllato, archivi, estrazione media, Libreria, player e 14 lingue già verificati nella Beta 2.
+
 ## 0.2.0-beta.2
 
 - Corretto il crash all'avvio introdotto dal passaggio ad `AppCompatActivity` per il cambio lingua.
