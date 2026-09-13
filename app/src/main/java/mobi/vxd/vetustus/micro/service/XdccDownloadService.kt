@@ -42,7 +42,12 @@ import java.util.concurrent.ConcurrentHashMap
 
 class XdccDownloadService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val transferSlot = Semaphore(1)
+
+    // IRC requests are intentionally more parallel than the actual DCC payloads.
+    // A slow bot queue must never block a file that another bot can serve now.
+    private val requestSlots = Semaphore(MAX_PARALLEL_IRC_REQUESTS)
+    private val transferSlots = Semaphore(MAX_PARALLEL_DCC_TRANSFERS)
+
     private val jobs = ConcurrentHashMap<String, Job>()
     private val sessions = ConcurrentHashMap<String, IrcSession>()
     private val dccSockets = ConcurrentHashMap<String, Socket>()
@@ -74,10 +79,10 @@ class XdccDownloadService : Service() {
     private fun launchDownload(id: String) {
         if (jobs[id]?.isActive == true) return
         requestedStops.remove(id)
-        container.downloads.state(id, DownloadState.QUEUED, "In coda locale")
+        container.downloads.state(id, DownloadState.QUEUED, "In coda locale · priorità al primo bot disponibile")
         lateinit var job: Job
         job = serviceScope.launch(start = CoroutineStart.LAZY) {
-            transferSlot.withPermit { runDownload(id) }
+            runDownload(id)
         }
         jobs[id] = job
         job.invokeOnCompletion {
@@ -103,8 +108,6 @@ class XdccDownloadService : Service() {
                 .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "VetustusMicro:XdccDownload:$id")
                 .apply { acquire(WAKE_LOCK_TIMEOUT_MS) }
 
-            container.downloads.state(id, DownloadState.CONNECTING, "Connessione IRC a ${network.name}")
-            updateNotification(force = true)
             val activeSession = IrcSession(
                 network = network,
                 initialNick = settings.nick,
@@ -123,7 +126,13 @@ class XdccDownloadService : Service() {
             )
             session = activeSession
             sessions[id] = activeSession
-            val offer = activeSession.connectAndRequest(initial.channel, initial.bot, initial.pack)
+
+            val offer = requestSlots.withPermit {
+                container.downloads.state(id, DownloadState.CONNECTING, "Connessione IRC a ${network.name}")
+                updateNotification(force = true)
+                activeSession.connectAndRequest(initial.channel, initial.bot, initial.pack)
+            }
+
             container.downloads.offer(id, offer.filename, offer.bytesTotal)
             val partial = File(initial.partialPath)
             if (offer.bytesTotal > 0L && partial.length() > offer.bytesTotal) {
@@ -135,20 +144,26 @@ class XdccDownloadService : Service() {
             } else {
                 offset = activeSession.negotiateResume(offer, offset)
                 keepAliveJob = serviceScope.launch { runCatching { activeSession.keepAlive(initial.bot) } }
-                val result = DccDownloader().download(
-                    offer = offer,
-                    partialFile = partial,
-                    resumeOffset = offset,
-                    allowPrivateHost = settings.allowPrivateDccHosts,
-                    onSocket = { socket ->
-                        if (socket == null) dccSockets.remove(id) else dccSockets[id] = socket
-                    },
-                    onProgress = { progress ->
-                        container.downloads.progress(id, progress.bytesDone, progress.bytesTotal, progress.speedBps)
-                        updateNotification()
-                    },
-                )
-                check(result.bytesWritten == partial.length()) { "Verifica del file parziale non riuscita" }
+                container.downloads.message(id, "Bot pronto · priorità DCC al primo slot disponibile")
+                updateNotification(force = true)
+
+                transferSlots.withPermit {
+                    container.downloads.message(id, "Bot pronto · avvio trasferimento DCC")
+                    val result = DccDownloader().download(
+                        offer = offer,
+                        partialFile = partial,
+                        resumeOffset = offset,
+                        allowPrivateHost = settings.allowPrivateDccHosts,
+                        onSocket = { socket ->
+                            if (socket == null) dccSockets.remove(id) else dccSockets[id] = socket
+                        },
+                        onProgress = { progress ->
+                            container.downloads.progress(id, progress.bytesDone, progress.bytesTotal, progress.speedBps)
+                            updateNotification()
+                        },
+                    )
+                    check(result.bytesWritten == partial.length()) { "Verifica del file parziale non riuscita" }
+                }
             }
 
             val archiveKind = FileTypes.archiveKind(offer.filename)
@@ -366,18 +381,18 @@ class XdccDownloadService : Service() {
         if (item != null && item.bytesTotal > 0L && item.state == DownloadState.DOWNLOADING) {
             val progress = ((item.bytesDone * 100L) / item.bytesTotal).toInt().coerceIn(0, 100)
             builder.setProgress(100, progress, false)
-        } else if (item != null && item.state in setOf(DownloadState.CONNECTING, DownloadState.REQUESTING, DownloadState.WAITING)) {
+        } else if (item != null && item.state in setOf(DownloadState.CONNECTING, DownloadState.REQUESTING, DownloadState.WAITING, DownloadState.QUEUED)) {
             builder.setProgress(0, 0, true)
         }
         if (item != null) {
             builder.addAction(
                 android.R.drawable.ic_media_pause,
-                "Pausa",
+                getString(R.string.pause_action),
                 servicePendingIntent(ACTION_PAUSE, item.id, 10),
             )
             builder.addAction(
                 android.R.drawable.ic_menu_close_clear_cancel,
-                "Annulla",
+                getString(R.string.cancel_action),
                 servicePendingIntent(ACTION_CANCEL, item.id, 20),
             )
         }
@@ -416,6 +431,8 @@ class XdccDownloadService : Service() {
         private const val ACTION_CANCEL = "mobi.vxd.vetustus.micro.action.CANCEL"
         private const val NOTIFICATION_THROTTLE_MS = 1_000L
         private const val WAKE_LOCK_TIMEOUT_MS = 6L * 60L * 60L * 1_000L
+        private const val MAX_PARALLEL_IRC_REQUESTS = 6
+        private const val MAX_PARALLEL_DCC_TRANSFERS = 3
 
         fun enqueue(context: Context, result: XdccSearchResult): String {
             val app = context.applicationContext as VetustusMicroApp
