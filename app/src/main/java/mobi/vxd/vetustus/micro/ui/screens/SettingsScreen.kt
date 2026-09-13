@@ -70,17 +70,17 @@ fun SettingsScreen(repository: SettingsRepository, modifier: Modifier = Modifier
 
         SettingsCard(Icons.Default.Archive, "Archivi") {
             SwitchSetting(
-                title = "Estrai automaticamente gli ZIP",
-                detail = "L'archivio viene controllato e i file finiscono in una sottocartella dedicata.",
-                checked = settings.autoExtractZip,
-                onChecked = repository::setAutoExtractZip,
+                title = "Estrai automaticamente ZIP / RAR / TAR",
+                detail = "VETUSTUS estrae soltanto i file audio e video riconosciuti; NFO, TXT, EXE e altro materiale accessorio vengono ignorati.",
+                checked = settings.autoExtractArchives,
+                onChecked = repository::setAutoExtractArchives,
             )
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
             SwitchSetting(
-                title = "Elimina lo ZIP dopo l'estrazione",
-                detail = "Avviene solo se almeno un file è stato estratto correttamente.",
+                title = "Elimina l'archivio dopo l'estrazione",
+                detail = "Avviene solo se almeno un brano o video è stato estratto correttamente. In caso di errore l'archivio originale viene conservato.",
                 checked = settings.deleteArchiveAfterExtract,
-                enabled = settings.autoExtractZip,
+                enabled = settings.autoExtractArchives,
                 onChecked = repository::setDeleteArchiveAfterExtract,
             )
         }
@@ -108,11 +108,11 @@ fun SettingsScreen(repository: SettingsRepository, modifier: Modifier = Modifier
         SettingsCard(Icons.Default.Info, "Prima Alpha") {
             Text("VETUSTUS Micro ${BuildConfig.VERSION_NAME}", fontWeight = FontWeight.Bold)
             Text("Ricerca: xdcc.eu · Download: IRC/DCC nativo", style = MaterialTheme.typography.bodySmall)
-            Text("Player: Media3/ExoPlayer · MP4, MKV, MP3, FLAC", style = MaterialTheme.typography.bodySmall)
-            Text("Archivi: ZIP · estrazione non ricorsiva", style = MaterialTheme.typography.bodySmall)
+            Text("Player: Media3/ExoPlayer · audio/video con fallback esterno", style = MaterialTheme.typography.bodySmall)
+            Text("Archivi: ZIP · RAR · TAR/TGZ/TBZ/TXZ · estrazione selettiva audio/video", style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(8.dp))
             Text(
-                "MKV è un contenitore: la riproduzione dipende anche dai codec presenti sul dispositivo. Android limita i servizi dataSync in background a 6 ore complessive; il file parziale resta riprendibile.",
+                "MKV è un contenitore: la riproduzione dipende anche dai codec presenti sul dispositivo. Archivi protetti, multi-volume incompleti o varianti RAR non supportate vengono conservati senza distruggere l'originale.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
