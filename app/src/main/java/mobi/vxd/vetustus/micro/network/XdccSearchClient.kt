@@ -57,7 +57,8 @@ object XdccHtmlParser {
     private val entityRegex = Regex("&(#x?[0-9a-f]+|[a-z]+);", RegexOption.IGNORE_CASE)
     private val whitespaceRegex = Regex("\\s+")
 
-    fun parse(html: String, limit: Int = 200): List<XdccSearchResult> = buildList {
+    fun parse(html: String, limit: Int = Int.MAX_VALUE): List<XdccSearchResult> = buildList {
+        val effectiveLimit = limit.coerceAtLeast(1)
         for (row in rowRegex.findAll(html)) {
             val cells = cellRegex.findAll(row.value).map { stripHtml(it.groupValues[1]) }.toList()
             if (cells.size < 7) continue
@@ -82,7 +83,7 @@ object XdccHtmlParser {
                     filename = filename,
                 ),
             )
-            if (this.size >= limit.coerceIn(1, 500)) break
+            if (this.size >= effectiveLimit) break
         }
     }
 
