@@ -56,6 +56,7 @@ private val languageOptions = listOf(
     LanguageOption("pt", "Português"),
     LanguageOption("nl", "Nederlands"),
     LanguageOption("pl", "Polski"),
+    LanguageOption("ru", "Русский"),
     LanguageOption("uk", "Українська"),
     LanguageOption("tr", "Türkçe"),
     LanguageOption("ja", "日本語"),
@@ -163,8 +164,7 @@ fun SettingsScreen(repository: SettingsRepository, modifier: Modifier = Modifier
             )
         }
 
-        SettingsCard(Icons.Default.Info, stringResource(R.string.settings_alpha)) {
-            Text("VETUSTUS Micro ${BuildConfig.VERSION_NAME}", fontWeight = FontWeight.Bold)
+        SettingsCard(Icons.Default.Info, "VETUSTUS Micro ${BuildConfig.VERSION_NAME}") {
             Text(stringResource(R.string.settings_search_line), style = MaterialTheme.typography.bodySmall)
             Text(stringResource(R.string.settings_player_line), style = MaterialTheme.typography.bodySmall)
             Text(stringResource(R.string.settings_archives_line), style = MaterialTheme.typography.bodySmall)
