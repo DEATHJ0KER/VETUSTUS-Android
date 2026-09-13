@@ -1,0 +1,6 @@
+VETUSTUS Micro
+VETUSTUS Script by VxD aka DEATHJ0KER
+
+Il progetto VETUSTUS desktop di riferimento dichiara "UNLICENSED".
+Questa Alpha non concede quindi una licenza di redistribuzione: definirla con il titolare dei diritti prima della pubblicazione.
+Le dipendenze AndroidX, Kotlin e Media3 mantengono le rispettive licenze.
