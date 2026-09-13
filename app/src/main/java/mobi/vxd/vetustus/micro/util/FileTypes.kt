@@ -17,7 +17,7 @@ object FileTypes {
         "mpeg", "mpg", "m2p", "ps", "ts", "m2ts", "mts",
     )
     private val audioExtensions = setOf(
-        "mp3", "flac", "m4a", "aac", "adts", "ogg", "oga", "opus",
+        "mp1", "mp2", "mp3", "mpa", "flac", "m4a", "aac", "adts", "ogg", "oga", "opus",
         "wav", "wave", "ac3", "ec3", "eac3", "ac4", "amr", "mka",
     )
 
@@ -63,7 +63,7 @@ object FileTypes {
             "flv" -> "video/x-flv"
             "mpeg", "mpg", "m2p", "ps" -> "video/mpeg"
             "ts", "m2ts", "mts" -> "video/mp2t"
-            "mp3" -> "audio/mpeg"
+            "mp1", "mp2", "mp3", "mpa" -> "audio/mpeg"
             "flac" -> "audio/flac"
             "m4a" -> "audio/mp4"
             "aac", "adts" -> "audio/aac"
