@@ -7,8 +7,8 @@ import mobi.vxd.vetustus.micro.data.LibraryRepository
 import mobi.vxd.vetustus.micro.data.SettingsRepository
 import mobi.vxd.vetustus.micro.network.NetworkDirectory
 import mobi.vxd.vetustus.micro.network.XdccSearchClient
+import mobi.vxd.vetustus.micro.storage.MediaArchiveManager
 import mobi.vxd.vetustus.micro.storage.MediaStorePublisher
-import mobi.vxd.vetustus.micro.storage.ZipArchiveManager
 
 class VetustusMicroApp : Application() {
     val container: AppContainer by lazy { AppContainer(this) }
@@ -28,5 +28,5 @@ class AppContainer(application: Application) {
     val networkDirectory = NetworkDirectory(application)
     val searchClient = XdccSearchClient()
     val publisher = MediaStorePublisher(application)
-    val archiveManager = ZipArchiveManager(application, publisher, library)
+    val archiveManager = MediaArchiveManager(application, publisher, library)
 }
