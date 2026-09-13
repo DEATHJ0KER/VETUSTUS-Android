@@ -33,11 +33,23 @@ class XdccHtmlParserTest {
     }
 
     @Test
-    fun ignoresIncompleteRowsAndHonorsLimit() {
+    fun ignoresIncompleteRowsAndHonorsExplicitLimit() {
         val valid = "<tr><td>Rizon</td><td>#a</td><td>Bot</td><td>#1</td><td>2</td><td>3 MB</td><td>a.mp3</td></tr>"
         val malformed = "<tr><td>not enough</td></tr>"
         val results = XdccHtmlParser.parse(malformed + valid + valid.replace("#1", "#2"), limit = 1)
         assertEquals(1, results.size)
         assertTrue(results.first().filename.endsWith(".mp3"))
+    }
+
+    @Test
+    fun defaultParsingDoesNotCutResultsAtTwoHundred() {
+        val html = buildString {
+            repeat(250) { index ->
+                append("<tr><td>Rizon</td><td>#a</td><td>Bot</td><td>#${index + 1}</td><td>2</td><td>700 MB</td><td>video-${index + 1}-1080p.mkv</td></tr>")
+            }
+        }
+        val results = XdccHtmlParser.parse(html)
+        assertEquals(250, results.size)
+        assertEquals(250, results.last().pack)
     }
 }

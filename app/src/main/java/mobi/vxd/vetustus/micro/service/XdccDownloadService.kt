@@ -42,7 +42,12 @@ import java.util.concurrent.ConcurrentHashMap
 
 class XdccDownloadService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val transferSlot = Semaphore(1)
+
+    // IRC requests are intentionally more parallel than the actual DCC payloads.
+    // A slow bot queue must never block a file that another bot can serve now.
+    private val requestSlots = Semaphore(MAX_PARALLEL_IRC_REQUESTS)
+    private val transferSlots = Semaphore(MAX_PARALLEL_DCC_TRANSFERS)
+
     private val jobs = ConcurrentHashMap<String, Job>()
     private val sessions = ConcurrentHashMap<String, IrcSession>()
     private val dccSockets = ConcurrentHashMap<String, Socket>()
@@ -74,10 +79,10 @@ class XdccDownloadService : Service() {
     private fun launchDownload(id: String) {
         if (jobs[id]?.isActive == true) return
         requestedStops.remove(id)
-        container.downloads.state(id, DownloadState.QUEUED, "In coda locale")
+        container.downloads.state(id, DownloadState.QUEUED, "In coda locale · priorità al primo bot disponibile")
         lateinit var job: Job
         job = serviceScope.launch(start = CoroutineStart.LAZY) {
-            transferSlot.withPermit { runDownload(id) }
+            runDownload(id)
         }
         jobs[id] = job
         job.invokeOnCompletion {
@@ -103,8 +108,6 @@ class XdccDownloadService : Service() {
                 .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "VetustusMicro:XdccDownload:$id")
                 .apply { acquire(WAKE_LOCK_TIMEOUT_MS) }
 
-            container.downloads.state(id, DownloadState.CONNECTING, "Connessione IRC a ${network.name}")
-            updateNotification(force = true)
             val activeSession = IrcSession(
                 network = network,
                 initialNick = settings.nick,
@@ -123,7 +126,13 @@ class XdccDownloadService : Service() {
             )
             session = activeSession
             sessions[id] = activeSession
-            val offer = activeSession.connectAndRequest(initial.channel, initial.bot, initial.pack)
+
+            val offer = requestSlots.withPermit {
+                container.downloads.state(id, DownloadState.CONNECTING, "Connessione IRC a ${network.name}")
+                updateNotification(force = true)
+                activeSession.connectAndRequest(initial.channel, initial.bot, initial.pack)
+            }
+
             container.downloads.offer(id, offer.filename, offer.bytesTotal)
             val partial = File(initial.partialPath)
             if (offer.bytesTotal > 0L && partial.length() > offer.bytesTotal) {
@@ -135,77 +144,104 @@ class XdccDownloadService : Service() {
             } else {
                 offset = activeSession.negotiateResume(offer, offset)
                 keepAliveJob = serviceScope.launch { runCatching { activeSession.keepAlive(initial.bot) } }
-                val result = DccDownloader().download(
-                    offer = offer,
-                    partialFile = partial,
-                    resumeOffset = offset,
-                    allowPrivateHost = settings.allowPrivateDccHosts,
-                    onSocket = { socket ->
-                        if (socket == null) dccSockets.remove(id) else dccSockets[id] = socket
-                    },
-                    onProgress = { progress ->
-                        container.downloads.progress(id, progress.bytesDone, progress.bytesTotal, progress.speedBps)
-                        updateNotification()
-                    },
-                )
-                check(result.bytesWritten == partial.length()) { "Verifica del file parziale non riuscita" }
-            }
-
-            container.downloads.state(id, DownloadState.PUBLISHING, "Salvataggio in Download/VETUSTUS Micro")
-            updateNotification(force = true)
-            val published = container.publisher.publishFile(partial, offer.filename)
-            val originalLibraryItem = published.toLibraryItem(id)
-            try {
-                container.library.insert(originalLibraryItem)
-                container.downloads.completed(
-                    id = id,
-                    contentUri = published.uri.toString(),
-                    mimeType = published.mimeType,
-                    filename = published.displayName,
-                    bytes = published.sizeBytes,
-                )
-            } catch (error: Throwable) {
-                container.library.delete(originalLibraryItem.id)
-                container.publisher.delete(published.uri)
-                throw error
-            }
-            partial.delete()
-
-            var finalUri = published.uri.toString()
-            var archiveWarning: Pair<String, String>? = null
-            if (FileTypes.extension(published.displayName) == "zip" && settings.autoExtractZip) {
-                container.downloads.state(id, DownloadState.EXTRACTING, "Estrazione ZIP protetta")
+                container.downloads.message(id, "Bot pronto · priorità DCC al primo slot disponibile")
                 updateNotification(force = true)
-                try {
-                    val extracted = container.archiveManager.extract(id, published)
-                    if (extracted.isNotEmpty() && settings.deleteArchiveAfterExtract) {
-                        if (container.publisher.delete(published.uri)) {
-                            container.library.delete(originalLibraryItem.id)
-                            finalUri = ""
-                        }
-                    }
-                } catch (cancelled: CancellationException) {
-                    archiveWarning = "ZIP_EXTRACTION_INTERRUPTED" to "Estrazione ZIP interrotta; l'archivio originale è disponibile"
-                } catch (error: Throwable) {
-                    archiveWarning = "ZIP_EXTRACTION_FAILED" to (error.message ?: "Estrazione ZIP non riuscita")
+
+                transferSlots.withPermit {
+                    container.downloads.message(id, "Bot pronto · avvio trasferimento DCC")
+                    val result = DccDownloader().download(
+                        offer = offer,
+                        partialFile = partial,
+                        resumeOffset = offset,
+                        allowPrivateHost = settings.allowPrivateDccHosts,
+                        onSocket = { socket ->
+                            if (socket == null) dccSockets.remove(id) else dccSockets[id] = socket
+                        },
+                        onProgress = { progress ->
+                            container.downloads.progress(id, progress.bytesDone, progress.bytesTotal, progress.speedBps)
+                            updateNotification()
+                        },
+                    )
+                    check(result.bytesWritten == partial.length()) { "Verifica del file parziale non riuscita" }
                 }
             }
 
-            container.downloads.completed(
-                id = id,
-                contentUri = finalUri,
-                mimeType = published.mimeType,
-                filename = published.displayName,
-                bytes = published.sizeBytes,
-            )
-            archiveWarning?.let { (code, message) ->
-                container.downloads.state(
-                    id,
-                    DownloadState.COMPLETE,
-                    "Download completo · ZIP non estratto",
-                    code,
-                    message,
+            val archiveKind = FileTypes.archiveKind(offer.filename)
+            if (archiveKind != null && settings.autoExtractArchives) {
+                val archiveBytes = partial.length()
+                container.downloads.state(id, DownloadState.EXTRACTING, "Analisi archivio · estrazione solo audio/video")
+                updateNotification(force = true)
+
+                var extracted = emptyList<mobi.vxd.vetustus.micro.data.LibraryItem>()
+                var archiveWarning: Pair<String, String>? = null
+                try {
+                    extracted = container.archiveManager.extractMedia(id, partial, offer.filename)
+                    if (extracted.isEmpty()) {
+                        archiveWarning = "ARCHIVE_NO_MEDIA" to "Nessun brano o video riconosciuto nell'archivio; archivio originale conservato"
+                    }
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Throwable) {
+                    archiveWarning = "ARCHIVE_EXTRACTION_FAILED" to (error.message ?: "Estrazione archivio non riuscita")
+                }
+
+                val keepOriginal = extracted.isEmpty() || !settings.deleteArchiveAfterExtract
+                var finalUri = ""
+                var finalMime = FileTypes.mimeType(offer.filename)
+                var finalName = offer.filename
+                if (keepOriginal) {
+                    container.downloads.state(id, DownloadState.PUBLISHING, "Conservazione archivio originale")
+                    updateNotification(force = true)
+                    try {
+                        val published = container.publisher.publishFile(partial, offer.filename)
+                        finalUri = published.uri.toString()
+                        finalMime = published.mimeType
+                        finalName = published.displayName
+                        if (extracted.isEmpty()) {
+                            container.library.insert(published.toLibraryItem(id))
+                        }
+                    } catch (error: Throwable) {
+                        if (extracted.isNotEmpty()) container.archiveManager.rollback(extracted)
+                        throw error
+                    }
+                }
+                partial.delete()
+                container.downloads.completed(
+                    id = id,
+                    contentUri = finalUri,
+                    mimeType = finalMime,
+                    filename = finalName,
+                    bytes = archiveBytes,
                 )
+                archiveWarning?.let { (code, message) ->
+                    container.downloads.state(
+                        id,
+                        DownloadState.COMPLETE,
+                        "Download completo · archivio conservato",
+                        code,
+                        message,
+                    )
+                }
+            } else {
+                container.downloads.state(id, DownloadState.PUBLISHING, "Salvataggio in Download/VETUSTUS Micro")
+                updateNotification(force = true)
+                val published = container.publisher.publishFile(partial, offer.filename)
+                val libraryItem = published.toLibraryItem(id)
+                try {
+                    container.library.insert(libraryItem)
+                    container.downloads.completed(
+                        id = id,
+                        contentUri = published.uri.toString(),
+                        mimeType = published.mimeType,
+                        filename = published.displayName,
+                        bytes = published.sizeBytes,
+                    )
+                } catch (error: Throwable) {
+                    container.library.delete(libraryItem.id)
+                    container.publisher.delete(published.uri)
+                    throw error
+                }
+                partial.delete()
             }
             updateNotification(force = true)
         } catch (cancelled: CancellationException) {
@@ -345,18 +381,18 @@ class XdccDownloadService : Service() {
         if (item != null && item.bytesTotal > 0L && item.state == DownloadState.DOWNLOADING) {
             val progress = ((item.bytesDone * 100L) / item.bytesTotal).toInt().coerceIn(0, 100)
             builder.setProgress(100, progress, false)
-        } else if (item != null && item.state in setOf(DownloadState.CONNECTING, DownloadState.REQUESTING, DownloadState.WAITING)) {
+        } else if (item != null && item.state in setOf(DownloadState.CONNECTING, DownloadState.REQUESTING, DownloadState.WAITING, DownloadState.QUEUED)) {
             builder.setProgress(0, 0, true)
         }
         if (item != null) {
             builder.addAction(
                 android.R.drawable.ic_media_pause,
-                "Pausa",
+                getString(R.string.pause_action),
                 servicePendingIntent(ACTION_PAUSE, item.id, 10),
             )
             builder.addAction(
                 android.R.drawable.ic_menu_close_clear_cancel,
-                "Annulla",
+                getString(R.string.cancel_action),
                 servicePendingIntent(ACTION_CANCEL, item.id, 20),
             )
         }
@@ -395,6 +431,8 @@ class XdccDownloadService : Service() {
         private const val ACTION_CANCEL = "mobi.vxd.vetustus.micro.action.CANCEL"
         private const val NOTIFICATION_THROTTLE_MS = 1_000L
         private const val WAKE_LOCK_TIMEOUT_MS = 6L * 60L * 60L * 1_000L
+        private const val MAX_PARALLEL_IRC_REQUESTS = 6
+        private const val MAX_PARALLEL_DCC_TRANSFERS = 3
 
         fun enqueue(context: Context, result: XdccSearchResult): String {
             val app = context.applicationContext as VetustusMicroApp

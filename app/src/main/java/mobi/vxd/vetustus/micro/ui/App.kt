@@ -1,6 +1,7 @@
 package mobi.vxd.vetustus.micro.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -25,8 +26,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import mobi.vxd.vetustus.micro.AppContainer
+import mobi.vxd.vetustus.micro.BuildConfig
+import mobi.vxd.vetustus.micro.R
 import mobi.vxd.vetustus.micro.data.LibraryItem
 import mobi.vxd.vetustus.micro.ui.screens.DownloadsScreen
 import mobi.vxd.vetustus.micro.ui.screens.LibraryScreen
@@ -34,11 +38,11 @@ import mobi.vxd.vetustus.micro.ui.screens.PlayerScreen
 import mobi.vxd.vetustus.micro.ui.screens.SearchScreen
 import mobi.vxd.vetustus.micro.ui.screens.SettingsScreen
 
-private enum class MainTab(val label: String, val icon: ImageVector) {
-    SEARCH("Cerca", Icons.Default.Search),
-    DOWNLOADS("Download", Icons.Default.Download),
-    LIBRARY("Libreria", Icons.Default.VideoLibrary),
-    SETTINGS("Impostazioni", Icons.Default.Settings),
+private enum class MainTab(@StringRes val labelRes: Int, val icon: ImageVector) {
+    SEARCH(R.string.tab_search, Icons.Default.Search),
+    DOWNLOADS(R.string.tab_downloads, Icons.Default.Download),
+    LIBRARY(R.string.tab_library, Icons.Default.VideoLibrary),
+    SETTINGS(R.string.tab_settings, Icons.Default.Settings),
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,8 +64,11 @@ fun VetustusMicroRoot(container: AppContainer) {
                 TopAppBar(
                     title = {
                         Column {
-                            Text("VETUSTUS Micro", fontWeight = FontWeight.Bold)
-                            Text("0.1.0 · ALPHA 1", style = androidx.compose.material3.MaterialTheme.typography.labelSmall)
+                            Text(stringResource(R.string.app_name), fontWeight = FontWeight.Bold)
+                            Text(
+                                BuildConfig.VERSION_NAME.uppercase(),
+                                style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+                            )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -74,11 +81,12 @@ fun VetustusMicroRoot(container: AppContainer) {
         bottomBar = {
             NavigationBar {
                 MainTab.entries.forEach { tab ->
+                    val label = stringResource(tab.labelRes)
                     NavigationBarItem(
                         selected = selectedTab == tab,
                         onClick = { selectedTab = tab },
-                        icon = { Icon(tab.icon, contentDescription = tab.label) },
-                        label = { Text(tab.label) },
+                        icon = { Icon(tab.icon, contentDescription = label) },
+                        label = { Text(label) },
                     )
                 }
             }

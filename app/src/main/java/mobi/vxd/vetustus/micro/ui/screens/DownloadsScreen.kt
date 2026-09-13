@@ -1,5 +1,6 @@
 package mobi.vxd.vetustus.micro.ui.screens
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,10 +33,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import mobi.vxd.vetustus.micro.R
 import mobi.vxd.vetustus.micro.data.DownloadItem
 import mobi.vxd.vetustus.micro.data.DownloadRepository
 import mobi.vxd.vetustus.micro.data.DownloadState
@@ -62,8 +65,8 @@ fun DownloadsScreen(
         ) {
             Icon(Icons.Default.Download, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.height(10.dp))
-            Text("Nessun download")
-            Text("Avvia il primo dalla scheda Cerca.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.downloads_empty))
+            Text(stringResource(R.string.downloads_empty_hint), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         return
     }
@@ -122,7 +125,11 @@ private fun DownloadCard(
             Spacer(Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.weight(1f)) {
-                    Text(stateLabel(item), color = stateColor(item.state), style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        stringResource(stateLabelRes(item.state)),
+                        color = stateColor(item.state),
+                        style = MaterialTheme.typography.labelLarge,
+                    )
                     if (item.state == DownloadState.DOWNLOADING) {
                         val total = item.bytesTotal.takeIf { it > 0L }?.formatBytes() ?: "?"
                         Text(
@@ -133,8 +140,13 @@ private fun DownloadCard(
                         Text(item.statusMessage, style = MaterialTheme.typography.bodySmall, maxLines = 2)
                     }
                     if (item.queuePosition > 0) {
+                        val queue = buildString {
+                            append(item.queuePosition)
+                            if (item.queueTotal > 0) append("/${item.queueTotal}")
+                            if (item.queueEta.isNotBlank()) append(" · ${item.queueEta}")
+                        }
                         Text(
-                            "Coda ${item.queuePosition}${if (item.queueTotal > 0) "/${item.queueTotal}" else ""}${if (item.queueEta.isNotBlank()) " · ${item.queueEta}" else ""}",
+                            stringResource(R.string.queue_label, queue),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.secondary,
                         )
@@ -157,24 +169,24 @@ private fun DownloadCard(
                         FilledTonalButton(onClick = onPause, modifier = Modifier.weight(1f)) {
                             Icon(Icons.Default.Pause, contentDescription = null)
                             Spacer(Modifier.width(5.dp))
-                            Text("Pausa")
+                            Text(stringResource(R.string.pause_action))
                         }
                         OutlinedButton(onClick = onCancel, modifier = Modifier.weight(1f)) {
                             Icon(Icons.Default.Cancel, contentDescription = null)
                             Spacer(Modifier.width(5.dp))
-                            Text("Annulla")
+                            Text(stringResource(R.string.cancel_action))
                         }
                     }
                     item.state.canResume -> {
                         Button(onClick = onResume, modifier = Modifier.weight(1f)) {
                             Icon(Icons.Default.Refresh, contentDescription = null)
                             Spacer(Modifier.width(5.dp))
-                            Text("Riprendi")
+                            Text(stringResource(R.string.resume_action))
                         }
                         TextButton(onClick = onRemove) {
                             Icon(Icons.Default.DeleteOutline, contentDescription = null)
                             Spacer(Modifier.width(4.dp))
-                            Text("Rimuovi")
+                            Text(stringResource(R.string.remove_action))
                         }
                     }
                     item.state == DownloadState.COMPLETE -> {
@@ -182,13 +194,13 @@ private fun DownloadCard(
                             Button(onClick = onPlay, modifier = Modifier.weight(1f)) {
                                 Icon(Icons.Default.PlayArrow, contentDescription = null)
                                 Spacer(Modifier.width(5.dp))
-                                Text("Riproduci")
+                                Text(stringResource(R.string.play_action))
                             }
                         }
                         TextButton(onClick = onRemove) {
                             Icon(Icons.Default.DeleteOutline, contentDescription = null)
                             Spacer(Modifier.width(4.dp))
-                            Text("Rimuovi riga")
+                            Text(stringResource(R.string.remove_row_action))
                         }
                     }
                 }
@@ -205,17 +217,18 @@ private fun stateColor(state: DownloadState) = when (state) {
     else -> MaterialTheme.colorScheme.secondary
 }
 
-private fun stateLabel(item: DownloadItem): String = when (item.state) {
-    DownloadState.QUEUED -> "In coda locale"
-    DownloadState.CONNECTING -> "Connessione"
-    DownloadState.REQUESTING -> "Richiesta inviata"
-    DownloadState.WAITING -> "In coda sul bot"
-    DownloadState.DOWNLOADING -> "Download"
-    DownloadState.PUBLISHING -> "Salvataggio"
-    DownloadState.EXTRACTING -> "Estrazione ZIP"
-    DownloadState.COMPLETE -> "Completato"
-    DownloadState.PAUSED -> "In pausa"
-    DownloadState.INTERRUPTED -> "Interrotto"
-    DownloadState.FAILED -> "Errore"
-    DownloadState.CANCELLED -> "Annullato"
+@StringRes
+private fun stateLabelRes(state: DownloadState): Int = when (state) {
+    DownloadState.QUEUED -> R.string.state_queued
+    DownloadState.CONNECTING -> R.string.state_connecting
+    DownloadState.REQUESTING -> R.string.state_requesting
+    DownloadState.WAITING -> R.string.state_waiting
+    DownloadState.DOWNLOADING -> R.string.state_downloading
+    DownloadState.PUBLISHING -> R.string.state_publishing
+    DownloadState.EXTRACTING -> R.string.state_extracting
+    DownloadState.COMPLETE -> R.string.state_complete
+    DownloadState.PAUSED -> R.string.state_paused
+    DownloadState.INTERRUPTED -> R.string.state_interrupted
+    DownloadState.FAILED -> R.string.state_failed
+    DownloadState.CANCELLED -> R.string.state_cancelled
 }

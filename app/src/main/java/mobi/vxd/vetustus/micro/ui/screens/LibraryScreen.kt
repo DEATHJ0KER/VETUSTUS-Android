@@ -2,6 +2,7 @@ package mobi.vxd.vetustus.micro.ui.screens
 
 import android.content.Intent
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -46,10 +47,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import mobi.vxd.vetustus.micro.R
 import mobi.vxd.vetustus.micro.data.LibraryItem
 import mobi.vxd.vetustus.micro.data.LibraryRepository
 import mobi.vxd.vetustus.micro.data.MediaKind
@@ -68,16 +71,18 @@ fun LibraryScreen(
     var filterName by rememberSaveable { mutableStateOf("ALL") }
     var deleting by remember { mutableStateOf<LibraryItem?>(null) }
     val items = allItems.filter { filterName == "ALL" || it.kind.name == filterName }
+    val chooserOpen = stringResource(R.string.chooser_open_with)
+    val chooserShare = stringResource(R.string.chooser_share_file)
 
     Column(modifier.fillMaxSize()) {
         Row(
             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            LibraryFilter("ALL", "Tutto", filterName) { filterName = it }
-            LibraryFilter(MediaKind.VIDEO.name, "Video", filterName) { filterName = it }
-            LibraryFilter(MediaKind.AUDIO.name, "Audio", filterName) { filterName = it }
-            LibraryFilter(MediaKind.ARCHIVE.name, "ZIP", filterName) { filterName = it }
+            LibraryFilter("ALL", R.string.library_all, filterName) { filterName = it }
+            LibraryFilter(MediaKind.VIDEO.name, R.string.library_video, filterName) { filterName = it }
+            LibraryFilter(MediaKind.AUDIO.name, R.string.library_audio, filterName) { filterName = it }
+            LibraryFilter(MediaKind.ARCHIVE.name, R.string.library_archives, filterName) { filterName = it }
         }
         if (items.isEmpty()) {
             Column(
@@ -87,8 +92,10 @@ fun LibraryScreen(
             ) {
                 Icon(Icons.Default.VideoLibrary, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.height(10.dp))
-                Text(if (allItems.isEmpty()) "Libreria vuota" else "Nessun file in questa categoria")
-                if (allItems.isEmpty()) Text("I download completati appariranno qui.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(if (allItems.isEmpty()) R.string.library_empty else R.string.library_no_category))
+                if (allItems.isEmpty()) {
+                    Text(stringResource(R.string.library_empty_hint), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         } else {
             LazyColumn(
@@ -99,8 +106,8 @@ fun LibraryScreen(
                     LibraryCard(
                         item = item,
                         onPlay = { onPlay(item) },
-                        onOpen = { openExternally(context, item) },
-                        onShare = { shareFile(context, item) },
+                        onOpen = { openExternally(context, item, chooserOpen) },
+                        onShare = { shareFile(context, item, chooserShare) },
                         onDelete = { deleting = item },
                     )
                 }
@@ -112,26 +119,28 @@ fun LibraryScreen(
     deleting?.let { item ->
         AlertDialog(
             onDismissRequest = { deleting = null },
-            title = { Text("Eliminare il file?") },
-            text = { Text("${item.displayName} verrà rimosso anche da Download/VETUSTUS Micro.") },
+            title = { Text(stringResource(R.string.delete_file_title)) },
+            text = { Text(stringResource(R.string.delete_file_text, item.displayName)) },
             confirmButton = {
                 Button(onClick = {
                     publisher.delete(Uri.parse(item.contentUri))
                     repository.delete(item.id)
                     deleting = null
-                }) { Text("Elimina") }
+                }) { Text(stringResource(R.string.delete_action)) }
             },
-            dismissButton = { TextButton(onClick = { deleting = null }) { Text("Annulla") } },
+            dismissButton = {
+                TextButton(onClick = { deleting = null }) { Text(stringResource(R.string.cancel_action)) }
+            },
         )
     }
 }
 
 @Composable
-private fun LibraryFilter(value: String, label: String, selected: String, onSelect: (String) -> Unit) {
+private fun LibraryFilter(value: String, @StringRes labelRes: Int, selected: String, onSelect: (String) -> Unit) {
     FilterChip(
         selected = value == selected,
         onClick = { onSelect(value) },
-        label = { Text(label) },
+        label = { Text(stringResource(labelRes)) },
     )
 }
 
@@ -161,13 +170,13 @@ private fun LibraryCard(
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        "${item.kind.name.lowercase().replaceFirstChar { it.uppercase() }} · ${item.sizeBytes.formatBytes()}",
+                        "${stringResource(kindLabelRes(item.kind))} · ${item.sizeBytes.formatBytes()}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     if (item.parentArchive.isNotBlank()) {
                         Text(
-                            "Estratto da ${item.parentArchive}",
+                            stringResource(R.string.extracted_from, item.parentArchive),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.secondary,
                             maxLines = 1,
@@ -176,7 +185,7 @@ private fun LibraryCard(
                     }
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.DeleteOutline, contentDescription = "Elimina")
+                    Icon(Icons.Default.DeleteOutline, contentDescription = stringResource(R.string.delete_action))
                 }
             }
             Spacer(Modifier.height(10.dp))
@@ -185,19 +194,19 @@ private fun LibraryCard(
                     Button(onClick = onPlay, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Default.PlayArrow, contentDescription = null)
                         Spacer(Modifier.width(5.dp))
-                        Text("Riproduci")
+                        Text(stringResource(R.string.play_action))
                     }
                 } else {
                     OutlinedButton(onClick = onOpen, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Default.FolderOpen, contentDescription = null)
                         Spacer(Modifier.width(5.dp))
-                        Text("Apri")
+                        Text(stringResource(R.string.open_action))
                     }
                 }
                 OutlinedButton(onClick = onShare, modifier = Modifier.weight(1f)) {
                     Icon(Icons.Default.Share, contentDescription = null)
                     Spacer(Modifier.width(5.dp))
-                    Text("Condividi")
+                    Text(stringResource(R.string.share_action))
                 }
             }
         }
@@ -211,19 +220,27 @@ private fun libraryIcon(kind: MediaKind): ImageVector = when (kind) {
     MediaKind.OTHER -> Icons.Default.InsertDriveFile
 }
 
-private fun openExternally(context: android.content.Context, item: LibraryItem) {
+@StringRes
+private fun kindLabelRes(kind: MediaKind): Int = when (kind) {
+    MediaKind.VIDEO -> R.string.kind_video
+    MediaKind.AUDIO -> R.string.kind_audio
+    MediaKind.ARCHIVE -> R.string.kind_archive
+    MediaKind.OTHER -> R.string.kind_other
+}
+
+private fun openExternally(context: android.content.Context, item: LibraryItem, chooserTitle: String) {
     val intent = Intent(Intent.ACTION_VIEW).apply {
         setDataAndType(Uri.parse(item.contentUri), item.mimeType)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
-    runCatching { context.startActivity(Intent.createChooser(intent, "Apri con")) }
+    runCatching { context.startActivity(Intent.createChooser(intent, chooserTitle)) }
 }
 
-private fun shareFile(context: android.content.Context, item: LibraryItem) {
+private fun shareFile(context: android.content.Context, item: LibraryItem, chooserTitle: String) {
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = item.mimeType
         putExtra(Intent.EXTRA_STREAM, Uri.parse(item.contentUri))
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
-    runCatching { context.startActivity(Intent.createChooser(intent, "Condividi file")) }
+    runCatching { context.startActivity(Intent.createChooser(intent, chooserTitle)) }
 }

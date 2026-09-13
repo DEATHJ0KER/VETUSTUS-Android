@@ -10,3 +10,5 @@
 - Player Media3/ExoPlayer.
 - Estrazione ZIP protetta e opzionale eliminazione archivio.
 - Test parser IRC/XDCC e prova socket DCC con resume/ACK.
+- Pipeline GitHub Actions per test e generazione dell'APK debug.
+- Compose bloccato alla serie compatibile con SDK 36 e AGP 8.13.

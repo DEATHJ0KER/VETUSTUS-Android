@@ -1,13 +1,18 @@
 package mobi.vxd.vetustus.micro.ui.screens
 
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.AudioAttributes
@@ -32,12 +38,16 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import mobi.vxd.vetustus.micro.R
 import mobi.vxd.vetustus.micro.data.LibraryItem
+import mobi.vxd.vetustus.micro.data.MediaKind
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerScreen(item: LibraryItem, onBack: () -> Unit) {
     val context = LocalContext.current
+    val unsupportedText = stringResource(R.string.player_unsupported)
+    val chooserTitle = stringResource(R.string.chooser_open_with)
     var error by remember { mutableStateOf("") }
     val player = remember(item.id) {
         ExoPlayer.Builder(context).build().apply {
@@ -53,10 +63,10 @@ fun PlayerScreen(item: LibraryItem, onBack: () -> Unit) {
             playWhenReady = true
         }
     }
-    DisposableEffect(player) {
+    DisposableEffect(player, unsupportedText) {
         val listener = object : Player.Listener {
             override fun onPlayerError(playbackError: PlaybackException) {
-                error = playbackError.message ?: "Formato o codec non supportato dal dispositivo"
+                error = playbackError.message ?: unsupportedText
             }
         }
         player.addListener(listener)
@@ -72,7 +82,7 @@ fun PlayerScreen(item: LibraryItem, onBack: () -> Unit) {
                 title = { Text(item.displayName, maxLines = 1) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Indietro")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.player_back))
                     }
                 },
             )
@@ -84,7 +94,7 @@ fun PlayerScreen(item: LibraryItem, onBack: () -> Unit) {
                     factory = { viewContext ->
                         PlayerView(viewContext).apply {
                             useController = true
-                            keepScreenOn = item.kind == mobi.vxd.vetustus.micro.data.MediaKind.VIDEO
+                            keepScreenOn = item.kind == MediaKind.VIDEO
                             this.player = player
                         }
                     },
@@ -92,13 +102,26 @@ fun PlayerScreen(item: LibraryItem, onBack: () -> Unit) {
                     modifier = Modifier.fillMaxWidth().fillMaxSize(),
                 )
                 if (error.isNotBlank()) {
-                    Text(
-                        error,
+                    Column(
                         modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
-                        color = MaterialTheme.colorScheme.error,
-                    )
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(error, color = MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.height(8.dp))
+                        Button(onClick = { openWithExternalPlayer(context, item, chooserTitle) }) {
+                            Text(stringResource(R.string.player_external))
+                        }
+                    }
                 }
             }
         }
     }
+}
+
+private fun openWithExternalPlayer(context: Context, item: LibraryItem, chooserTitle: String) {
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(Uri.parse(item.contentUri), item.mimeType)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    runCatching { context.startActivity(Intent.createChooser(intent, chooserTitle)) }
 }

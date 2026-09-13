@@ -94,7 +94,7 @@ data class LibraryItem(
 
 data class AppSettings(
     val nick: String,
-    val autoExtractZip: Boolean,
+    val autoExtractArchives: Boolean,
     val deleteArchiveAfterExtract: Boolean,
     val allowPrivateDccHosts: Boolean,
 )
