@@ -103,8 +103,8 @@
     <string name="settings_archives">Archivi</string>
     <string name="auto_extract_title">Estrai automaticamente ZIP / RAR / TAR</string>
     <string name="auto_extract_detail">VETUSTUS estrae soltanto i file audio e video riconosciuti; NFO, TXT, EXE e altro materiale accessorio vengono ignorati.</string>
-    <string name="delete_archive_title">Elimina l'archivio dopo l'estrazione</string>
-    <string name="delete_archive_detail">Solo se almeno un brano o video è stato estratto correttamente. In caso di errore l'archivio originale viene conservato.</string>
+    <string name="delete_archive_title">Elimina l\'archivio dopo l\'estrazione</string>
+    <string name="delete_archive_detail">Solo se almeno un brano o video è stato estratto correttamente. In caso di errore l\'archivio originale viene conservato.</string>
     <string name="settings_dcc_security">Sicurezza DCC</string>
     <string name="allow_local_title">Consenti host DCC nella rete locale</string>
     <string name="allow_local_detail">Disattivato per impedire a un bot remoto di sondare LAN e loopback. Attivalo solo per un bot privato fidato.</string>
@@ -115,5 +115,5 @@
     <string name="settings_search_line">Ricerca: xdcc.eu · Download: IRC/DCC nativo</string>
     <string name="settings_player_line">Player: Media3/ExoPlayer · audio/video con fallback esterno</string>
     <string name="settings_archives_line">Archivi: ZIP · RAR · TAR/TGZ/TBZ/TXZ · estrazione selettiva audio/video</string>
-    <string name="settings_codec_detail">MKV è un contenitore: la riproduzione dipende anche dai codec presenti sul dispositivo. Archivi protetti, multi-volume incompleti o varianti RAR non supportate vengono conservati senza distruggere l'originale.</string>
+    <string name="settings_codec_detail">MKV è un contenitore: la riproduzione dipende anche dai codec presenti sul dispositivo. Archivi protetti, multi-volume incompleti o varianti RAR non supportate vengono conservati senza distruggere l\'originale.</string>
 </resources>
