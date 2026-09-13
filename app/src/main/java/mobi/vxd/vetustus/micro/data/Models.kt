@@ -89,8 +89,7 @@ data class LibraryItem(
     val parentArchive: String,
     val createdAt: Long,
 ) {
-    val playable: Boolean
-        get() = kind == MediaKind.AUDIO || (kind == MediaKind.VIDEO && mimeType != "video/x-msvideo")
+    val playable: Boolean get() = kind == MediaKind.VIDEO || kind == MediaKind.AUDIO
 }
 
 data class AppSettings(
