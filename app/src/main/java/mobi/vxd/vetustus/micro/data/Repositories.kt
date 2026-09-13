@@ -170,7 +170,7 @@ class SettingsRepository(context: Context) {
         refresh()
     }
 
-    fun setAutoExtractZip(value: Boolean) = writeBoolean(KEY_AUTO_EXTRACT, value)
+    fun setAutoExtractArchives(value: Boolean) = writeBoolean(KEY_AUTO_EXTRACT, value)
     fun setDeleteArchiveAfterExtract(value: Boolean) = writeBoolean(KEY_DELETE_ARCHIVE, value)
     fun setAllowPrivateDccHosts(value: Boolean) = writeBoolean(KEY_ALLOW_PRIVATE_DCC, value)
 
@@ -181,8 +181,8 @@ class SettingsRepository(context: Context) {
 
     private fun read() = AppSettings(
         nick = preferences.getString(KEY_NICK, defaultNick) ?: defaultNick,
-        autoExtractZip = preferences.getBoolean(KEY_AUTO_EXTRACT, true),
-        deleteArchiveAfterExtract = preferences.getBoolean(KEY_DELETE_ARCHIVE, false),
+        autoExtractArchives = preferences.getBoolean(KEY_AUTO_EXTRACT, true),
+        deleteArchiveAfterExtract = preferences.getBoolean(KEY_DELETE_ARCHIVE, true),
         allowPrivateDccHosts = preferences.getBoolean(KEY_ALLOW_PRIVATE_DCC, false),
     )
 
@@ -192,6 +192,7 @@ class SettingsRepository(context: Context) {
 
     private companion object {
         const val KEY_NICK = "irc_nick"
+        // Keep the old preference key so Alpha users retain their previous choice.
         const val KEY_AUTO_EXTRACT = "archive_auto_extract_zip"
         const val KEY_DELETE_ARCHIVE = "archive_delete_after_extract"
         const val KEY_ALLOW_PRIVATE_DCC = "dcc_allow_private_hosts"
