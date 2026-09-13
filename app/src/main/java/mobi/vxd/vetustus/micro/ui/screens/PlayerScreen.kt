@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.AudioAttributes
@@ -37,6 +38,7 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import mobi.vxd.vetustus.micro.R
 import mobi.vxd.vetustus.micro.data.LibraryItem
 import mobi.vxd.vetustus.micro.data.MediaKind
 
@@ -44,6 +46,8 @@ import mobi.vxd.vetustus.micro.data.MediaKind
 @Composable
 fun PlayerScreen(item: LibraryItem, onBack: () -> Unit) {
     val context = LocalContext.current
+    val unsupportedText = stringResource(R.string.player_unsupported)
+    val chooserTitle = stringResource(R.string.chooser_open_with)
     var error by remember { mutableStateOf("") }
     val player = remember(item.id) {
         ExoPlayer.Builder(context).build().apply {
@@ -59,10 +63,10 @@ fun PlayerScreen(item: LibraryItem, onBack: () -> Unit) {
             playWhenReady = true
         }
     }
-    DisposableEffect(player) {
+    DisposableEffect(player, unsupportedText) {
         val listener = object : Player.Listener {
             override fun onPlayerError(playbackError: PlaybackException) {
-                error = playbackError.message ?: "Formato o codec non supportato dal dispositivo"
+                error = playbackError.message ?: unsupportedText
             }
         }
         player.addListener(listener)
@@ -78,7 +82,7 @@ fun PlayerScreen(item: LibraryItem, onBack: () -> Unit) {
                 title = { Text(item.displayName, maxLines = 1) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Indietro")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.player_back))
                     }
                 },
             )
@@ -104,8 +108,8 @@ fun PlayerScreen(item: LibraryItem, onBack: () -> Unit) {
                     ) {
                         Text(error, color = MaterialTheme.colorScheme.error)
                         Spacer(Modifier.height(8.dp))
-                        Button(onClick = { openWithExternalPlayer(context, item) }) {
-                            Text("Apri con player esterno")
+                        Button(onClick = { openWithExternalPlayer(context, item, chooserTitle) }) {
+                            Text(stringResource(R.string.player_external))
                         }
                     }
                 }
@@ -114,10 +118,10 @@ fun PlayerScreen(item: LibraryItem, onBack: () -> Unit) {
     }
 }
 
-private fun openWithExternalPlayer(context: Context, item: LibraryItem) {
+private fun openWithExternalPlayer(context: Context, item: LibraryItem, chooserTitle: String) {
     val intent = Intent(Intent.ACTION_VIEW).apply {
         setDataAndType(Uri.parse(item.contentUri), item.mimeType)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
-    runCatching { context.startActivity(Intent.createChooser(intent, "Apri con")) }
+    runCatching { context.startActivity(Intent.createChooser(intent, chooserTitle)) }
 }
