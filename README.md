@@ -2,9 +2,11 @@
 
 [![Android CI](https://github.com/DEATHJ0KER/VETUSTUS-Android/actions/workflows/android-ci.yml/badge.svg)](https://github.com/DEATHJ0KER/VETUSTUS-Android/actions/workflows/android-ci.yml)
 
-**VETUSTUS Micro 0.2.0-beta.2** è la versione Android nativa e minimale di **VETUSTUS Script by VxD aka DEATHJ0KER**. IRC resta dietro le quinte: l'utente cerca, scarica, apre la Libreria e riproduce i contenuti senza usare un client IRC visibile.
+**VETUSTUS Micro 1.0.0** è la versione Android nativa e minimale di **VETUSTUS Script by VxD aka DEATHJ0KER**. IRC resta dietro le quinte: l'utente cerca, scarica, apre la Libreria e riproduce i contenuti senza usare un client IRC visibile.
 
-## Stato Beta
+Sito ufficiale: **https://vxd.mobi**
+
+## Stato 1.0
 
 Funzioni operative e verificate sul campo:
 
@@ -20,9 +22,34 @@ Funzioni operative e verificate sul campo:
 - fallback a player Android esterno se il dispositivo non dispone del codec necessario;
 - Foreground Service per i trasferimenti in background;
 - 14 lingue: **EN, IT, DE, ES, FR, PT, NL, PL, RU, UK, TR, JA, KO, ZH**;
-- rilevamento automatico della lingua Android e selezione manuale nelle Impostazioni.
+- rilevamento automatico della lingua Android e selezione manuale nelle Impostazioni;
+- riferimento ufficiale cliccabile a `vxd.mobi` nelle Informazioni;
+- registrazione anonima della singola installazione al primo utilizzo per il conteggio installazioni.
 
-La Beta 2 corregge inoltre il crash all'avvio introdotto dal passaggio ad `AppCompatActivity` per la gestione della lingua, usando ora un tema AppCompat compatibile.
+## Registrazione primo utilizzo
+
+La registrazione è statistica e non è una licenza. Non blocca mai l'app.
+
+Al primo avvio VETUSTUS Micro genera un UUID casuale locale e prova in background a registrare l'installazione su:
+
+```text
+https://vxd.mobi/vetustus/api/register-micro.php
+```
+
+Il payload contiene soltanto:
+
+```json
+{
+  "product": "VETUSTUS-MICRO",
+  "install_id": "uuid-casuale",
+  "version": "1.0.0",
+  "platform": "android"
+}
+```
+
+L'UUID non deriva da IMEI, Android ID, account Google o altri identificativi hardware/personali. Dopo una risposta `{"ok":true}` l'app segna localmente la registrazione come completata e non invia più richieste. Se il server non è raggiungibile, l'app continua a funzionare normalmente e ritenta in seguito con un intervallo minimo di un'ora.
+
+Il server dovrebbe conservare soltanto l'hash dell'`install_id`, la data del primo utilizzo, l'ultima versione vista e la piattaforma. Non è necessario memorizzare l'indirizzo IP.
 
 ## Priorità e code XDCC
 
@@ -40,7 +67,7 @@ Questo permette di gestire reti che espongono certificati TLS non coerenti senza
 
 ## Archivi
 
-Per default la Beta:
+Per default VETUSTUS Micro:
 
 1. scarica il pacchetto XDCC in area privata;
 2. verifica il file ricevuto;
@@ -74,7 +101,7 @@ app/build/outputs/apk/debug/app-debug.apk
 La GitHub Action esegue unit test, build e pubblica l'artifact:
 
 ```text
-VETUSTUS-Micro-Android-0.2.0-beta.2-debug
+VETUSTUS-Micro-Android-1.0.0-debug
 ```
 
 ## Flusso reale
@@ -99,9 +126,10 @@ VETUSTUS-Micro-Android-0.2.0-beta.2-debug
 - loopback, link-local, multicast e host LAN bloccati per default;
 - nomi file bonificati e righe IRC limitate;
 - file incompleti mai pubblicati come download completati;
-- limiti di estrazione per numero file, dimensione, spazio disponibile e rapporto di espansione.
+- limiti di estrazione per numero file, dimensione, spazio disponibile e rapporto di espansione;
+- install ID statistico casuale, separato da identificativi hardware Android.
 
-## Limiti Beta dichiarati
+## Limiti dichiarati
 
 - `xdcc.eu` è una sorgente HTML esterna e può cambiare struttura o imporre propri limiti ai risultati;
 - reverse/passive DCC non è ancora incluso;
