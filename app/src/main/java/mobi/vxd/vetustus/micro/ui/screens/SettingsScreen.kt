@@ -1,6 +1,7 @@
 package mobi.vxd.vetustus.micro.ui.screens
 
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -69,6 +71,7 @@ fun SettingsScreen(repository: SettingsRepository, modifier: Modifier = Modifier
     val settings by repository.settings.collectAsStateWithLifecycle()
     var nick by remember(settings.nick) { mutableStateOf(settings.nick) }
     val currentTag = AppCompatDelegate.getApplicationLocales().toLanguageTags().substringBefore(',')
+    val uriHandler = LocalUriHandler.current
 
     Column(
         modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -176,6 +179,13 @@ fun SettingsScreen(repository: SettingsRepository, modifier: Modifier = Modifier
             )
             Spacer(Modifier.height(8.dp))
             Text("VETUSTUS Script by VxD aka DEATHJ0KER", color = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "vxd.mobi",
+                color = MaterialTheme.colorScheme.secondary,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.clickable { uriHandler.openUri("https://vxd.mobi") },
+            )
         }
         Spacer(Modifier.height(12.dp))
     }
