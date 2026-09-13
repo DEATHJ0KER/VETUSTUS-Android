@@ -3,14 +3,22 @@ package mobi.vxd.vetustus.micro.network
 import android.content.Context
 import org.json.JSONObject
 
-data class IrcNetwork(
-    val id: String,
-    val name: String,
-    val aliases: List<String>,
+data class IrcEndpoint(
     val address: String,
     val port: Int,
     val tls: Boolean,
 )
+
+data class IrcNetwork(
+    val id: String,
+    val name: String,
+    val aliases: List<String>,
+    val endpoints: List<IrcEndpoint>,
+) {
+    val address: String get() = endpoints.first().address
+    val port: Int get() = endpoints.first().port
+    val tls: Boolean get() = endpoints.first().tls
+}
 
 class NetworkDirectory(context: Context) {
     private val networks: List<IrcNetwork> = context.assets.open("network-directory.json")
@@ -31,9 +39,9 @@ class NetworkDirectory(context: Context) {
         }
         if (fuzzy != null) return fuzzy
 
-        // La rete arriva da un indice HTML esterno: mai trasformare una label
-        // sconosciuta in un hostname arbitrario. Il catalogo locale resta la
-        // allow-list autorevole per le connessioni IRC.
+        // The network label comes from an external HTML index. Never turn an
+        // unknown label into an arbitrary hostname. The bundled directory is
+        // the authoritative connection allow-list.
         return null
     }
 
@@ -53,14 +61,33 @@ class NetworkDirectory(context: Context) {
                 val address = item.optString("address").trim()
                 val port = item.optInt("port", 6697)
                 if (address.isBlank() || port !in 1..65535) continue
+
+                val tlsMode = item.optString("tls_mode", "ssl").lowercase()
+                val primaryTls = tlsMode != "plain"
+                val endpoints = buildList {
+                    add(IrcEndpoint(address = address, port = port, tls = primaryTls))
+                    val fallbackPort = when {
+                        item.has("fallback_plain_port") -> item.optInt("fallback_plain_port", 0)
+                        tlsMode == "auto" -> 6667
+                        else -> 0
+                    }
+                    if (primaryTls && fallbackPort in 1..65535 && fallbackPort != port) {
+                        add(
+                            IrcEndpoint(
+                                address = item.optString("fallback_address", address).trim().ifBlank { address },
+                                port = fallbackPort,
+                                tls = false,
+                            ),
+                        )
+                    }
+                }
+
                 add(
                     IrcNetwork(
                         id = item.optString("id", address),
                         name = item.optString("name", address),
                         aliases = aliases,
-                        address = address,
-                        port = port,
-                        tls = item.optString("tls_mode", "ssl").equals("ssl", ignoreCase = true),
+                        endpoints = endpoints,
                     ),
                 )
             }
@@ -68,5 +95,4 @@ class NetworkDirectory(context: Context) {
     }
 
     private fun normalize(value: String): String = value.lowercase().replace(Regex("[^a-z0-9]"), "")
-
 }
