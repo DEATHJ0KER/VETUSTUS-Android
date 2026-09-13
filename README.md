@@ -1,5 +1,7 @@
 # VETUSTUS Micro for Android
 
+[![Android CI](https://github.com/DEATHJ0KER/VETUSTUS-Android/actions/workflows/android-ci.yml/badge.svg)](https://github.com/DEATHJ0KER/VETUSTUS-Android/actions/workflows/android-ci.yml)
+
 Versione minimale di **VETUSTUS Script by VxD aka DEATHJ0KER**, dedicata a ricerca XDCC, download DCC, riproduzione locale e gestione automatica degli archivi.
 
 Questa repository contiene la prima Alpha nativa Android:
