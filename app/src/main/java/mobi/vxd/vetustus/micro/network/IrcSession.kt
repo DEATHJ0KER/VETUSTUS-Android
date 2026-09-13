@@ -11,6 +11,8 @@ import java.io.OutputStreamWriter
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketTimeoutException
+import javax.net.ssl.SSLHandshakeException
+import javax.net.ssl.SSLPeerUnverifiedException
 import javax.net.ssl.SSLSocket
 import javax.net.ssl.SSLSocketFactory
 
@@ -132,30 +134,67 @@ class IrcSession(
 
     private fun open() {
         check(!closed) { "Sessione IRC già chiusa" }
-        onStatus("Connessione a ${network.address}:${network.port}")
-        val connected = if (network.tls) {
-            val plain = Socket()
-            try {
-                plain.connect(InetSocketAddress(network.address, network.port), CONNECT_TIMEOUT_MS)
-                val factory = SSLSocketFactory.getDefault() as SSLSocketFactory
-                val ssl = factory.createSocket(plain, network.address, network.port, true) as SSLSocket
-                ssl.sslParameters = ssl.sslParameters.apply { endpointIdentificationAlgorithm = "HTTPS" }
-                ssl.soTimeout = CONNECT_TIMEOUT_MS
-                ssl.startHandshake()
-                ssl
-            } catch (error: Throwable) {
-                runCatching { plain.close() }
-                throw error
+        val failures = mutableListOf<Pair<IrcEndpoint, Throwable>>()
+
+        network.endpoints.forEachIndexed { index, endpoint ->
+            if (index > 0) {
+                onStatus("Fallback IRC compatibile su ${endpoint.address}:${endpoint.port}")
+            } else {
+                onStatus("Connessione a ${endpoint.address}:${endpoint.port}${if (endpoint.tls) " TLS" else ""}")
             }
-        } else {
-            Socket().apply { connect(InetSocketAddress(network.address, network.port), CONNECT_TIMEOUT_MS) }
+            try {
+                val connected = openEndpoint(endpoint)
+                connected.keepAlive = true
+                connected.tcpNoDelay = true
+                connected.soTimeout = READ_TICK_MS
+                socket = connected
+                input = BufferedInputStream(connected.getInputStream())
+                writer = BufferedWriter(OutputStreamWriter(connected.getOutputStream(), Charsets.UTF_8))
+                if (index > 0) onStatus("Connesso tramite fallback IRC non cifrato")
+                return
+            } catch (error: Throwable) {
+                failures += endpoint to error
+                val hasFallback = index < network.endpoints.lastIndex
+                if (hasFallback) {
+                    val reason = when (error) {
+                        is SSLHandshakeException, is SSLPeerUnverifiedException -> "Certificato TLS non compatibile"
+                        else -> "Endpoint IRC non disponibile"
+                    }
+                    onStatus("$reason · provo il fallback configurato")
+                }
+            }
         }
-        connected.keepAlive = true
-        connected.tcpNoDelay = true
-        connected.soTimeout = READ_TICK_MS
-        socket = connected
-        input = BufferedInputStream(connected.getInputStream())
-        writer = BufferedWriter(OutputStreamWriter(connected.getOutputStream(), Charsets.UTF_8))
+
+        val detail = failures.joinToString(" · ") { (endpoint, error) ->
+            "${endpoint.address}:${endpoint.port}${if (endpoint.tls) "/TLS" else ""}: ${error.message ?: error.javaClass.simpleName}"
+        }.take(600)
+        val tlsFailure = failures.any { (_, error) -> error is SSLHandshakeException || error is SSLPeerUnverifiedException }
+        throw IrcException(
+            if (tlsFailure) "IRC_TLS_OR_CONNECT_FAILED" else "IRC_CONNECT_FAILED",
+            if (detail.isBlank()) "Nessun endpoint IRC disponibile" else "Nessun endpoint IRC disponibile · $detail",
+        )
+    }
+
+    private fun openEndpoint(endpoint: IrcEndpoint): Socket {
+        if (!endpoint.tls) {
+            return Socket().apply {
+                connect(InetSocketAddress(endpoint.address, endpoint.port), CONNECT_TIMEOUT_MS)
+            }
+        }
+
+        val plain = Socket()
+        try {
+            plain.connect(InetSocketAddress(endpoint.address, endpoint.port), CONNECT_TIMEOUT_MS)
+            val factory = SSLSocketFactory.getDefault() as SSLSocketFactory
+            val ssl = factory.createSocket(plain, endpoint.address, endpoint.port, true) as SSLSocket
+            ssl.sslParameters = ssl.sslParameters.apply { endpointIdentificationAlgorithm = "HTTPS" }
+            ssl.soTimeout = CONNECT_TIMEOUT_MS
+            ssl.startHandshake()
+            return ssl
+        } catch (error: Throwable) {
+            runCatching { plain.close() }
+            throw error
+        }
     }
 
     @Synchronized
