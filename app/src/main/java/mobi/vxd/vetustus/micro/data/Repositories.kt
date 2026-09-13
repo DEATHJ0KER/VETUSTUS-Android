@@ -192,7 +192,7 @@ class SettingsRepository(context: Context) {
     private fun read() = AppSettings(
         nick = preferences.getString(KEY_NICK, defaultNick) ?: defaultNick,
         autoExtractArchives = preferences.getBoolean(KEY_AUTO_EXTRACT, true),
-        deleteArchiveAfterExtract = preferences.getBoolean(KEY_DELETE_ARCHIVE, true),
+        deleteArchiveAfterExtract = preferences.getBoolean(KEY_DELETE_ARCHIVE, false),
         allowPrivateDccHosts = preferences.getBoolean(KEY_ALLOW_PRIVATE_DCC, false),
     )
 
