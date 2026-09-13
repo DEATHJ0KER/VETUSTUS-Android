@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VETUSTUS Micro</string>
+    <string name="download_channel_name">Загрузки XDCC</string>
+    <string name="download_channel_description">Фоновые передачи XDCC/DCC</string>
+
+    <string name="tab_search">Поиск</string>
+    <string name="tab_downloads">Загрузки</string>
+    <string name="tab_library">Библиотека</string>
+    <string name="tab_settings">Настройки</string>
+    <string name="alpha_version">%1$s · ALPHA 1</string>
+
+    <string name="search_tagline">Найдите файл. Остальное сделает VETUSTUS.</string>
+    <string name="search_subtitle">IRC остаётся невидимым: VETUSTUS показывает всё, что возвращает XDCC, и оставляет выбор вам.</string>
+    <string name="search_field_label">Фильм, альбом или имя файла</string>
+    <string name="search_button">Искать в XDCC</string>
+    <string name="search_loading">Поиск…</string>
+    <string name="search_min_chars">Введите не менее 2 символов</string>
+    <string name="search_failed">Ошибка поиска XDCC</string>
+    <string name="results_count">Результатов: %1$d</string>
+    <string name="results_filtered">Показано %1$d из %2$d</string>
+    <string name="no_filter_results">Нет результатов с этими фильтрами.</string>
+    <string name="no_results">Нет результатов</string>
+    <string name="try_less_specific">Попробуйте менее точное название.</string>
+    <string name="search_intro_title">Все файлы · Mobile · 2K · 4K · 5K · 8K</string>
+    <string name="search_intro_subtitle">Фильтруйте после поиска, а не до него.</string>
+    <string name="mobile_hint">Mobile = медиа до 2 ГБ и максимум 1080p, если качество можно определить по имени файла.</string>
+
+    <string name="filter_all">Все</string>
+    <string name="filter_video">Видео</string>
+    <string name="filter_audio">Аудио</string>
+    <string name="filter_archives">Архивы</string>
+    <string name="filter_other">Другое</string>
+    <string name="size_any">Любой размер</string>
+    <string name="size_mobile">Mobile</string>
+    <string name="size_under_1gb">&lt;1 ГБ</string>
+    <string name="size_1_5gb">1–5 ГБ</string>
+    <string name="size_5_20gb">5–20 ГБ</string>
+    <string name="size_20plus_gb">20+ ГБ</string>
+    <string name="quality_any">Любое качество</string>
+    <string name="quality_sd">SD</string>
+    <string name="quality_720p">720p</string>
+    <string name="quality_1080p">1080p</string>
+    <string name="quality_2k">2K</string>
+    <string name="quality_4k">4K</string>
+    <string name="quality_5k">5K</string>
+    <string name="quality_8k">8K</string>
+    <string name="sort_source">Порядок источника</string>
+    <string name="sort_small_first">Сначала меньшие</string>
+    <string name="sort_large_first">Сначала большие</string>
+
+    <string name="network_not_configured">Сеть не настроена в этой версии</string>
+    <string name="download_internal_player">Можно скачать · встроенный проигрыватель</string>
+    <string name="download_archive_managed">Можно скачать · архив поддерживается</string>
+    <string name="download_external_open">Можно скачать · внешнее приложение</string>
+    <string name="download_action">Скачать</string>
+
+    <string name="downloads_empty">Нет загрузок</string>
+    <string name="downloads_empty_hint">Запустите первую загрузку на вкладке Поиск.</string>
+    <string name="state_queued">Локальная очередь</string>
+    <string name="state_connecting">Подключение</string>
+    <string name="state_requesting">Запрос отправлен</string>
+    <string name="state_waiting">Очередь у бота</string>
+    <string name="state_downloading">Загрузка</string>
+    <string name="state_publishing">Сохранение</string>
+    <string name="state_extracting">Распаковка архива</string>
+    <string name="state_complete">Завершено</string>
+    <string name="state_paused">Пауза</string>
+    <string name="state_interrupted">Прервано</string>
+    <string name="state_failed">Ошибка</string>
+    <string name="state_cancelled">Отменено</string>
+    <string name="queue_label">Очередь %1$s</string>
+    <string name="pause_action">Пауза</string>
+    <string name="cancel_action">Отмена</string>
+    <string name="resume_action">Продолжить</string>
+    <string name="remove_action">Убрать</string>
+    <string name="play_action">Воспроизвести</string>
+    <string name="remove_row_action">Убрать запись</string>
+
+    <string name="library_all">Все</string>
+    <string name="library_video">Видео</string>
+    <string name="library_audio">Аудио</string>
+    <string name="library_archives">Архивы</string>
+    <string name="library_empty">Библиотека пуста</string>
+    <string name="library_no_category">В этой категории нет файлов</string>
+    <string name="library_empty_hint">Завершённые медиа появятся здесь.</string>
+    <string name="delete_file_title">Удалить файл?</string>
+    <string name="delete_file_text">%1$s также будет удалён из Download/VETUSTUS Micro.</string>
+    <string name="delete_action">Удалить</string>
+    <string name="extracted_from">Извлечено из %1$s</string>
+    <string name="open_action">Открыть</string>
+    <string name="share_action">Поделиться</string>
+    <string name="kind_video">Видео</string>
+    <string name="kind_audio">Аудио</string>
+    <string name="kind_archive">Архив</string>
+    <string name="kind_other">Файл</string>
+    <string name="chooser_open_with">Открыть с помощью</string>
+    <string name="chooser_share_file">Поделиться файлом</string>
+
+    <string name="player_back">Назад</string>
+    <string name="player_unsupported">Формат или кодек не поддерживается этим устройством</string>
+    <string name="player_external">Открыть во внешнем проигрывателе</string>
+
+    <string name="settings_language">Язык</string>
+    <string name="settings_language_detail">Использовать язык Android автоматически или выбрать язык VETUSTUS Micro.</string>
+    <string name="language_system">Система</string>
+    <string name="settings_irc_identity">Невидимая IRC-идентичность</string>
+    <string name="settings_irc_detail">Используется только движком XDCC. Чаты, каналы и статус не отображаются.</string>
+    <string name="nickname">Ник</string>
+    <string name="save_nickname">Сохранить ник</string>
+    <string name="settings_archives">Архивы</string>
+    <string name="auto_extract_title">Автоматически распаковывать ZIP / RAR / TAR</string>
+    <string name="auto_extract_detail">VETUSTUS извлекает только распознанные аудио- и видеофайлы; NFO, TXT, EXE и прочие вспомогательные файлы игнорируются.</string>
+    <string name="delete_archive_title">Удалять архив после распаковки</string>
+    <string name="delete_archive_detail">Только если хотя бы один аудио- или видеофайл успешно извлечён. При ошибке исходный архив сохраняется.</string>
+    <string name="settings_dcc_security">Безопасность DCC</string>
+    <string name="allow_local_title">Разрешить DCC-хосты в локальной сети</string>
+    <string name="allow_local_detail">Отключено, чтобы удалённый бот не мог сканировать LAN и loopback. Включайте только для доверенного частного бота.</string>
+    <string name="settings_storage">Хранилище</string>
+    <string name="public_destination">Публичная папка</string>
+    <string name="storage_detail">Файлы .part остаются приватными, пока не пройдут проверки размера и записи. Паузы и ошибки не оставляют повреждённые копии в Download.</string>
+    <string name="settings_alpha">Версия</string>
+    <string name="settings_search_line">Поиск: xdcc.eu · Загрузка: нативный IRC/DCC</string>
+    <string name="settings_player_line">Проигрыватель: Media3/ExoPlayer · аудио/видео с внешним fallback</string>
+    <string name="settings_archives_line">Архивы: ZIP · RAR · TAR/TGZ/TBZ/TXZ · выборочное извлечение аудио/видео</string>
+    <string name="settings_codec_detail">MKV — контейнер: воспроизведение зависит и от кодеков устройства. Архивы с паролем, неполные многотомные наборы и неподдерживаемые варианты RAR сохраняются без удаления оригинала.</string>
+</resources>
