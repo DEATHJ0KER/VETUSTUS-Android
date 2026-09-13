@@ -3,79 +3,55 @@
     {
       "id": "rizon",
       "name": "Rizon",
-      "aliases": [
-        "rizon"
-      ],
+      "aliases": ["rizon"],
       "address": "irc.rizon.net",
       "port": 6697,
-      "tls_mode": "ssl"
+      "tls_mode": "auto"
     },
     {
       "id": "abandoned-irc",
       "name": "Abandoned-IRC",
-      "aliases": [
-        "abandoned-irc",
-        "abandoned irc",
-        "abandonedirc"
-      ],
+      "aliases": ["abandoned-irc", "abandoned irc", "abandonedirc"],
       "address": "irc.abandoned-irc.net",
       "port": 6697,
-      "tls_mode": "ssl"
+      "tls_mode": "auto"
     },
     {
       "id": "abjects",
       "name": "Abjects",
-      "aliases": [
-        "abjects",
-        "abjects irc"
-      ],
+      "aliases": ["abjects", "abjects irc"],
       "address": "irc.abjects.net",
       "port": 6697,
-      "tls_mode": "ssl"
+      "tls_mode": "auto"
     },
     {
       "id": "irchighway",
       "name": "IRCHighWay",
-      "aliases": [
-        "irchighway",
-        "irc highway",
-        "irchighway.net"
-      ],
+      "aliases": ["irchighway", "irc highway", "irchighway.net"],
       "address": "irc.irchighway.net",
       "port": 6697,
-      "tls_mode": "ssl"
+      "tls_mode": "auto"
     },
     {
       "id": "coreirc",
       "name": "CoreIRC",
-      "aliases": [
-        "coreirc",
-        "core irc"
-      ],
+      "aliases": ["coreirc", "core irc"],
       "address": "irc.coreirc.net",
-      "port": 6667,
-      "tls_mode": "plain"
+      "port": 6697,
+      "tls_mode": "auto"
     },
     {
       "id": "xertion",
       "name": "Xertion",
-      "aliases": [
-        "xertion",
-        "xertion irc"
-      ],
+      "aliases": ["xertion", "xertion irc"],
       "address": "irc.xertion.org",
       "port": 6697,
-      "tls_mode": "ssl"
+      "tls_mode": "auto"
     },
     {
       "id": "openjoke",
       "name": "OpenJoke",
-      "aliases": [
-        "irc.openjoke.biz",
-        "open joke",
-        "openjoke",
-        "openjoke.biz"
-      ],
+      "aliases": ["irc.openjoke.biz", "open joke", "openjoke", "openjoke.biz"],
       "address": "irc.openjoke.biz",
       "port": 6667,
       "tls_mode": "plain"
@@ -83,10 +59,7 @@
     {
       "id": "undernet",
       "name": "UnderNet",
-      "aliases": [
-        "undernet",
-        "under net"
-      ],
+      "aliases": ["undernet", "under net"],
       "address": "us.undernet.org",
       "port": 6667,
       "tls_mode": "plain"
@@ -94,41 +67,31 @@
     {
       "id": "azzurra",
       "name": "Azzurra",
-      "aliases": [
-        "azzurra",
-        "openmedia"
-      ],
+      "aliases": ["azzurra", "openmedia"],
       "address": "irc.azzurra.org",
       "port": 6697,
-      "tls_mode": "ssl"
+      "tls_mode": "auto"
     },
     {
       "id": "globalirc",
       "name": "GlobalIRC",
-      "aliases": [
-        "globalirc",
-        "globalirc.it"
-      ],
+      "aliases": ["globalirc", "globalirc.it"],
       "address": "irc.globalirc.it",
       "port": 6697,
-      "tls_mode": "ssl"
+      "tls_mode": "auto"
     },
     {
       "id": "simosnap",
       "name": "SimosNap",
-      "aliases": [
-        "simosnap"
-      ],
+      "aliases": ["simosnap"],
       "address": "irc.simosnap.org",
       "port": 6697,
-      "tls_mode": "ssl"
+      "tls_mode": "auto"
     },
     {
       "id": "abusivehub",
       "name": "AbusiveHub",
-      "aliases": [
-        "abusivehub"
-      ],
+      "aliases": ["abusivehub"],
       "address": "irc.abusivehub.net",
       "port": 6667,
       "tls_mode": "plain"
@@ -136,9 +99,7 @@
     {
       "id": "quakenet",
       "name": "QuakeNet",
-      "aliases": [
-        "quakenet"
-      ],
+      "aliases": ["quakenet"],
       "address": "irc.quakenet.org",
       "port": 6667,
       "tls_mode": "plain"
@@ -146,12 +107,7 @@
     {
       "id": "irc-files",
       "name": "Irc-Files",
-      "aliases": [
-        "irc-files",
-        "irc files",
-        "ircfiles",
-        "irc-files.org"
-      ],
+      "aliases": ["irc-files", "irc files", "ircfiles", "irc-files.org"],
       "address": "irc.irc-files.org",
       "port": 6667,
       "tls_mode": "plain"
@@ -159,12 +115,7 @@
     {
       "id": "arabaphenix",
       "name": "iRC.arabaphenix.it",
-      "aliases": [
-        "arabaphenix",
-        "irc.arabaphenix.it",
-        "irc arabaphenix",
-        "arabafenice"
-      ],
+      "aliases": ["arabaphenix", "irc.arabaphenix.it", "irc arabaphenix", "arabafenice"],
       "address": "irc.arabaphenix.it",
       "port": 6667,
       "tls_mode": "plain"
@@ -172,11 +123,7 @@
     {
       "id": "terrachat-eu",
       "name": "eu.terrachat.cl",
-      "aliases": [
-        "eu.terrachat.cl",
-        "terrachat eu",
-        "terrachat"
-      ],
+      "aliases": ["eu.terrachat.cl", "terrachat eu", "terrachat"],
       "address": "eu.terrachat.cl",
       "port": 6667,
       "tls_mode": "plain"
@@ -184,10 +131,7 @@
     {
       "id": "williamgattone",
       "name": "WilliamGattone",
-      "aliases": [
-        "williamgattone",
-        "irc.williamgattone.it"
-      ],
+      "aliases": ["williamgattone", "irc.williamgattone.it"],
       "address": "irc.williamgattone.it",
       "port": 6667,
       "tls_mode": "plain"
@@ -195,10 +139,7 @@
     {
       "id": "devilirc",
       "name": "DevilIrc",
-      "aliases": [
-        "devilirc",
-        "irc.devilirc.net"
-      ],
+      "aliases": ["devilirc", "irc.devilirc.net"],
       "address": "irc.devilirc.net",
       "port": 6667,
       "tls_mode": "plain"
