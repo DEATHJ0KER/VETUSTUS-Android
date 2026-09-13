@@ -1,5 +1,6 @@
 package mobi.vxd.vetustus.micro.ui.screens
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,11 +39,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import mobi.vxd.vetustus.micro.R
 import mobi.vxd.vetustus.micro.data.MediaKind
 import mobi.vxd.vetustus.micro.data.XdccSearchResult
 import mobi.vxd.vetustus.micro.network.NetworkDirectory
@@ -59,6 +62,8 @@ fun SearchScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val minCharsText = stringResource(R.string.search_min_chars)
+    val searchFailedText = stringResource(R.string.search_failed)
     var query by rememberSaveable { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
@@ -89,7 +94,7 @@ fun SearchScreen(
     val executeSearch = {
         val term = query.trim()
         if (term.length < 2) {
-            error = "Inserisci almeno 2 caratteri"
+            error = minCharsText
         } else if (!loading) {
             scope.launch {
                 loading = true
@@ -99,7 +104,7 @@ fun SearchScreen(
                     .onSuccess { results = it }
                     .onFailure { failure ->
                         results = emptyList()
-                        error = failure.message ?: "Ricerca XDCC non riuscita"
+                        error = failure.message ?: searchFailedText
                     }
                 loading = false
             }
@@ -111,12 +116,12 @@ fun SearchScreen(
     ) {
         Spacer(Modifier.height(16.dp))
         Text(
-            "Trova il file. Al resto pensa VETUSTUS.",
+            stringResource(R.string.search_tagline),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
         )
         Text(
-            "IRC rimane invisibile: VETUSTUS mostra tutto ciò che il motore XDCC restituisce e lascia scegliere a te.",
+            stringResource(R.string.search_subtitle),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -126,7 +131,7 @@ fun SearchScreen(
             onValueChange = { query = it.take(120) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            label = { Text("Film, album o nome file") },
+            label = { Text(stringResource(R.string.search_field_label)) },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             trailingIcon = {
                 if (loading) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
@@ -142,7 +147,7 @@ fun SearchScreen(
         ) {
             Icon(Icons.Default.Search, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text(if (loading) "Ricerca…" else "Cerca su XDCC")
+            Text(stringResource(if (loading) R.string.search_loading else R.string.search_button))
         }
         if (error.isNotBlank()) {
             Spacer(Modifier.height(10.dp))
@@ -151,27 +156,27 @@ fun SearchScreen(
         if (results.isNotEmpty()) {
             Spacer(Modifier.height(10.dp))
             FilterRow(
-                options = ResultTypeFilter.entries.map { it.name to it.label },
+                options = ResultTypeFilter.entries.map { it.name to it.labelRes },
                 selected = typeFilter,
                 onSelect = { typeFilter = it },
             )
             FilterRow(
-                options = SizeFilter.entries.map { it.name to it.label },
+                options = SizeFilter.entries.map { it.name to it.labelRes },
                 selected = sizeFilter,
                 onSelect = { sizeFilter = it },
             )
             FilterRow(
-                options = QualityFilter.entries.map { it.name to it.label },
+                options = QualityFilter.entries.map { it.name to it.labelRes },
                 selected = qualityFilter,
                 onSelect = { qualityFilter = it },
             )
             FilterRow(
-                options = SortMode.entries.map { it.name to it.label },
+                options = SortMode.entries.map { it.name to it.labelRes },
                 selected = sortMode,
                 onSelect = { sortMode = it },
             )
             Text(
-                "Mobile = media fino a 2 GB e massimo 1080p quando la qualità è riconoscibile dal nome file.",
+                stringResource(R.string.mobile_hint),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -182,14 +187,18 @@ fun SearchScreen(
             searched && results.isEmpty() && error.isBlank() -> EmptySearch()
             results.isNotEmpty() -> {
                 Text(
-                    if (visibleResults.size == results.size) "${results.size} risultati" else "${visibleResults.size} di ${results.size} risultati",
+                    if (visibleResults.size == results.size) {
+                        stringResource(R.string.results_count, results.size)
+                    } else {
+                        stringResource(R.string.results_filtered, visibleResults.size, results.size)
+                    },
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.secondary,
                 )
                 Spacer(Modifier.height(8.dp))
                 if (visibleResults.isEmpty()) {
                     Text(
-                        "Nessun risultato con questi filtri.",
+                        stringResource(R.string.no_filter_results),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 } else {
@@ -221,7 +230,7 @@ fun SearchScreen(
 
 @Composable
 private fun FilterRow(
-    options: List<Pair<String, String>>,
+    options: List<Pair<String, Int>>,
     selected: String,
     onSelect: (String) -> Unit,
 ) {
@@ -229,11 +238,11 @@ private fun FilterRow(
         modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        options.forEach { (value, label) ->
+        options.forEach { (value, labelRes) ->
             FilterChip(
                 selected = selected == value,
                 onClick = { onSelect(value) },
-                label = { Text(label) },
+                label = { Text(stringResource(labelRes)) },
             )
         }
     }
@@ -248,7 +257,7 @@ private fun SearchResultCard(
     val extension = FileTypes.extension(result.filename).uppercase().ifBlank { "FILE" }
     val internalPlayback = FileTypes.canTryInternalPlayback(result.filename)
     val archive = FileTypes.isArchive(result.filename)
-    val quality = detectQuality(result.filename)?.label
+    val quality = detectQuality(result.filename)
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(14.dp)) {
             Text(
@@ -264,7 +273,7 @@ private fun SearchResultCard(
                 MetaPill(result.channel)
                 MetaPill("#${result.pack}")
                 MetaPill(extension)
-                quality?.let { MetaPill(it) }
+                quality?.let { MetaPill(stringResource(it.labelRes)) }
             }
             Spacer(Modifier.height(8.dp))
             Row(
@@ -274,12 +283,14 @@ private fun SearchResultCard(
                 Column(Modifier.weight(1f)) {
                     Text("${result.bot} · ${result.sizeLabel}", style = MaterialTheme.typography.bodySmall)
                     Text(
-                        when {
-                            !networkSupported -> "Rete non configurata in questa Alpha"
-                            internalPlayback -> "Download disponibile · player interno"
-                            archive -> "Download disponibile · archivio gestito"
-                            else -> "Download disponibile · apertura esterna"
-                        },
+                        stringResource(
+                            when {
+                                !networkSupported -> R.string.network_not_configured
+                                internalPlayback -> R.string.download_internal_player
+                                archive -> R.string.download_archive_managed
+                                else -> R.string.download_external_open
+                            },
+                        ),
                         style = MaterialTheme.typography.labelSmall,
                         color = if (networkSupported) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -287,7 +298,7 @@ private fun SearchResultCard(
                 Button(onClick = onDownload, enabled = networkSupported) {
                     Icon(Icons.Default.Download, contentDescription = null)
                     Spacer(Modifier.width(6.dp))
-                    Text("Scarica")
+                    Text(stringResource(R.string.download_action))
                 }
             }
         }
@@ -315,8 +326,8 @@ private fun SearchIntro() {
     Column(Modifier.fillMaxWidth().padding(top = 26.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.height(12.dp))
-        Text("Tutti i file · Mobile · 2K · 4K · 5K · 8K", fontWeight = FontWeight.Bold)
-        Text("Filtra dopo la ricerca, non prima.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.search_intro_title), fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.search_intro_subtitle), color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -330,25 +341,43 @@ private fun SearchPlaceholder() {
 @Composable
 private fun EmptySearch() {
     Column(Modifier.fillMaxWidth().padding(top = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Nessun risultato")
-        Text("Prova un titolo meno specifico.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.no_results))
+        Text(stringResource(R.string.try_less_specific), color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
-private enum class ResultTypeFilter(val label: String) {
-    ALL("Tutti"), VIDEO("Video"), AUDIO("Audio"), ARCHIVE("Archivi"), OTHER("Altro")
+private enum class ResultTypeFilter(@StringRes val labelRes: Int) {
+    ALL(R.string.filter_all),
+    VIDEO(R.string.filter_video),
+    AUDIO(R.string.filter_audio),
+    ARCHIVE(R.string.filter_archives),
+    OTHER(R.string.filter_other),
 }
 
-private enum class SizeFilter(val label: String) {
-    ALL("Qualsiasi size"), MOBILE("Mobile"), UNDER_1_GB("<1 GB"), ONE_TO_FIVE_GB("1–5 GB"), FIVE_TO_TWENTY_GB("5–20 GB"), OVER_20_GB("20+ GB")
+private enum class SizeFilter(@StringRes val labelRes: Int) {
+    ALL(R.string.size_any),
+    MOBILE(R.string.size_mobile),
+    UNDER_1_GB(R.string.size_under_1gb),
+    ONE_TO_FIVE_GB(R.string.size_1_5gb),
+    FIVE_TO_TWENTY_GB(R.string.size_5_20gb),
+    OVER_20_GB(R.string.size_20plus_gb),
 }
 
-private enum class QualityFilter(val label: String) {
-    ALL("Qualsiasi qualità"), SD("SD"), P720("720p"), P1080("1080p"), K2("2K"), K4("4K"), K5("5K"), K8("8K")
+private enum class QualityFilter(@StringRes val labelRes: Int) {
+    ALL(R.string.quality_any),
+    SD(R.string.quality_sd),
+    P720(R.string.quality_720p),
+    P1080(R.string.quality_1080p),
+    K2(R.string.quality_2k),
+    K4(R.string.quality_4k),
+    K5(R.string.quality_5k),
+    K8(R.string.quality_8k),
 }
 
-private enum class SortMode(val label: String) {
-    SOURCE("Ordine sorgente"), SMALL_FIRST("Più piccoli"), LARGE_FIRST("Più grandi")
+private enum class SortMode(@StringRes val labelRes: Int) {
+    SOURCE(R.string.sort_source),
+    SMALL_FIRST(R.string.sort_small_first),
+    LARGE_FIRST(R.string.sort_large_first),
 }
 
 private fun matchesType(result: XdccSearchResult, filter: ResultTypeFilter): Boolean {
