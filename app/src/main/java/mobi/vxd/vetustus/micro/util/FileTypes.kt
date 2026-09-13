@@ -3,8 +3,14 @@ package mobi.vxd.vetustus.micro.util
 import mobi.vxd.vetustus.micro.data.MediaKind
 
 object FileTypes {
-    private val videoExtensions = setOf("mp4", "mkv", "webm", "m4v", "avi")
-    private val audioExtensions = setOf("mp3", "flac", "m4a", "aac", "ogg", "opus", "wav")
+    private val videoExtensions = setOf(
+        "mp4", "m4v", "mkv", "webm", "avi", "flv",
+        "mpeg", "mpg", "m2p", "ps", "ts", "m2ts", "mts",
+    )
+    private val audioExtensions = setOf(
+        "mp3", "flac", "m4a", "aac", "adts", "ogg", "oga", "opus",
+        "wav", "wave", "ac3", "ec3", "eac3", "ac4", "amr", "mka",
+    )
     private val archiveExtensions = setOf("zip")
 
     fun extension(filename: String): String = filename.substringAfterLast('.', "").lowercase()
@@ -19,21 +25,32 @@ object FileTypes {
     fun mimeType(filename: String): String = when (extension(filename)) {
         "mp4", "m4v" -> "video/mp4"
         "mkv" -> "video/x-matroska"
+        "mka" -> "audio/x-matroska"
         "webm" -> "video/webm"
         "avi" -> "video/x-msvideo"
+        "flv" -> "video/x-flv"
+        "mpeg", "mpg", "m2p", "ps" -> "video/mpeg"
+        "ts", "m2ts", "mts" -> "video/mp2t"
         "mp3" -> "audio/mpeg"
         "flac" -> "audio/flac"
         "m4a" -> "audio/mp4"
-        "aac" -> "audio/aac"
-        "ogg", "opus" -> "audio/ogg"
-        "wav" -> "audio/wav"
+        "aac", "adts" -> "audio/aac"
+        "ogg", "oga", "opus" -> "audio/ogg"
+        "wav", "wave" -> "audio/wav"
+        "ac3" -> "audio/ac3"
+        "ec3", "eac3" -> "audio/eac3"
+        "ac4" -> "audio/ac4"
+        "amr" -> "audio/amr"
         "zip" -> "application/zip"
         "srt" -> "application/x-subrip"
         "ass", "ssa" -> "text/x-ssa"
+        "vtt", "webvtt" -> "text/vtt"
         else -> "application/octet-stream"
     }
 
-    fun isAlphaSupported(filename: String): Boolean = extension(filename) in setOf("mp4", "mkv", "avi", "mp3", "flac", "zip")
+    fun canTryInternalPlayback(filename: String): Boolean = kind(filename) in setOf(MediaKind.VIDEO, MediaKind.AUDIO)
+
+    fun isArchive(filename: String): Boolean = kind(filename) == MediaKind.ARCHIVE
 }
 
 fun Long.formatBytes(): String {
