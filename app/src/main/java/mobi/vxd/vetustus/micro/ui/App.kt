@@ -66,7 +66,7 @@ fun VetustusMicroRoot(container: AppContainer) {
                         Column {
                             Text(stringResource(R.string.app_name), fontWeight = FontWeight.Bold)
                             Text(
-                                stringResource(R.string.alpha_version, BuildConfig.VERSION_NAME),
+                                BuildConfig.VERSION_NAME.uppercase(),
                                 style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
                             )
                         }
