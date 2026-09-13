@@ -53,8 +53,8 @@
         "core irc"
       ],
       "address": "irc.coreirc.net",
-      "port": 6697,
-      "tls_mode": "ssl"
+      "port": 6667,
+      "tls_mode": "plain"
     },
     {
       "id": "xertion",
