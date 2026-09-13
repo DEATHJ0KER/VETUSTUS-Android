@@ -23,10 +23,19 @@ class FileTypesTest {
     fun extractsOnlyRecognizedAudioAndVideoPayloads() {
         assertTrue(FileTypes.isExtractableMedia("disc/01-track.flac"))
         assertTrue(FileTypes.isExtractableMedia("disc/02-track.mp3"))
+        assertTrue(FileTypes.isExtractableMedia("disc/03-track.mp2"))
         assertTrue(FileTypes.isExtractableMedia("movie/feature.mkv"))
         assertTrue(FileTypes.isExtractableMedia("movie/feature.mp4"))
         assertFalse(FileTypes.isExtractableMedia("release.nfo"))
         assertFalse(FileTypes.isExtractableMedia("readme.txt"))
         assertFalse(FileTypes.isExtractableMedia("setup.exe"))
+    }
+
+    @Test
+    fun mapsMpegAudioExtensionsToAudioMpeg() {
+        listOf("song.mp1", "song.mp2", "song.mp3", "song.mpa").forEach { filename ->
+            assertEquals(MediaKind.AUDIO, FileTypes.kind(filename))
+            assertEquals("audio/mpeg", FileTypes.mimeType(filename))
+        }
     }
 }
