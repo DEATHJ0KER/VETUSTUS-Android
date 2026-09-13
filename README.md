@@ -22,7 +22,7 @@ Questa repository contiene la prima Alpha nativa Android:
 - Android SDK 36;
 - dispositivo o emulatore Android 10 (API 29) o successivo.
 
-Dipendenze principali: Kotlin 2.3.21, Compose BOM 2026.08.00, Media3 1.11.0.
+Dipendenze principali: Kotlin 2.3.21, Compose BOM 2026.06.01, Media3 1.11.0.
 
 ## Apertura e build
 
