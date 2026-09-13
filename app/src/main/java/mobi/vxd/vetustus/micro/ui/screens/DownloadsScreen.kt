@@ -212,7 +212,7 @@ private fun stateLabel(item: DownloadItem): String = when (item.state) {
     DownloadState.WAITING -> "In coda sul bot"
     DownloadState.DOWNLOADING -> "Download"
     DownloadState.PUBLISHING -> "Salvataggio"
-    DownloadState.EXTRACTING -> "Estrazione ZIP"
+    DownloadState.EXTRACTING -> "Estrazione archivio"
     DownloadState.COMPLETE -> "Completato"
     DownloadState.PAUSED -> "In pausa"
     DownloadState.INTERRUPTED -> "Interrotto"
