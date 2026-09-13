@@ -69,6 +69,10 @@ class DownloadRepository(
         database.updateDownload(id, ContentValues().apply {
             put("filename", filename)
             put("bytes_total", bytesTotal)
+            put("state", DownloadState.REQUESTING.name)
+            put("queue_position", 0)
+            put("queue_total", 0)
+            put("queue_eta", "")
             put("status_message", "Offerta DCC ricevuta")
         })
         refresh()
@@ -96,6 +100,9 @@ class DownloadRepository(
             put("bytes_done", done)
             put("bytes_total", total)
             put("speed_bps", speed)
+            put("queue_position", 0)
+            put("queue_total", 0)
+            put("queue_eta", "")
             put("status_message", "Download DCC")
             put("error_code", "")
             put("error_message", "")
@@ -112,6 +119,9 @@ class DownloadRepository(
             put("bytes_done", bytes)
             put("bytes_total", bytes)
             put("speed_bps", 0L)
+            put("queue_position", 0)
+            put("queue_total", 0)
+            put("queue_eta", "")
             put("status_message", "Completato")
             put("error_code", "")
             put("error_message", "")
@@ -192,7 +202,7 @@ class SettingsRepository(context: Context) {
 
     private companion object {
         const val KEY_NICK = "irc_nick"
-        // Keep the old preference key so Alpha users retain their previous choice.
+        // Keep the original preference key so existing installs retain the choice.
         const val KEY_AUTO_EXTRACT = "archive_auto_extract_zip"
         const val KEY_DELETE_ARCHIVE = "archive_delete_after_extract"
         const val KEY_ALLOW_PRIVATE_DCC = "dcc_allow_private_hosts"
