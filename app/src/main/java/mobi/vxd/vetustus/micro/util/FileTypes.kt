@@ -3,7 +3,7 @@ package mobi.vxd.vetustus.micro.util
 import mobi.vxd.vetustus.micro.data.MediaKind
 
 object FileTypes {
-    private val videoExtensions = setOf("mp4", "mkv", "webm", "m4v")
+    private val videoExtensions = setOf("mp4", "mkv", "webm", "m4v", "avi")
     private val audioExtensions = setOf("mp3", "flac", "m4a", "aac", "ogg", "opus", "wav")
     private val archiveExtensions = setOf("zip")
 
@@ -20,6 +20,7 @@ object FileTypes {
         "mp4", "m4v" -> "video/mp4"
         "mkv" -> "video/x-matroska"
         "webm" -> "video/webm"
+        "avi" -> "video/x-msvideo"
         "mp3" -> "audio/mpeg"
         "flac" -> "audio/flac"
         "m4a" -> "audio/mp4"
@@ -32,7 +33,7 @@ object FileTypes {
         else -> "application/octet-stream"
     }
 
-    fun isAlphaSupported(filename: String): Boolean = extension(filename) in setOf("mp4", "mkv", "mp3", "flac", "zip")
+    fun isAlphaSupported(filename: String): Boolean = extension(filename) in setOf("mp4", "mkv", "avi", "mp3", "flac", "zip")
 }
 
 fun Long.formatBytes(): String {
