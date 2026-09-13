@@ -1,13 +1,18 @@
 package mobi.vxd.vetustus.micro.ui.screens
 
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,6 +38,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import mobi.vxd.vetustus.micro.data.LibraryItem
+import mobi.vxd.vetustus.micro.data.MediaKind
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,7 +90,7 @@ fun PlayerScreen(item: LibraryItem, onBack: () -> Unit) {
                     factory = { viewContext ->
                         PlayerView(viewContext).apply {
                             useController = true
-                            keepScreenOn = item.kind == mobi.vxd.vetustus.micro.data.MediaKind.VIDEO
+                            keepScreenOn = item.kind == MediaKind.VIDEO
                             this.player = player
                         }
                     },
@@ -92,13 +98,26 @@ fun PlayerScreen(item: LibraryItem, onBack: () -> Unit) {
                     modifier = Modifier.fillMaxWidth().fillMaxSize(),
                 )
                 if (error.isNotBlank()) {
-                    Text(
-                        error,
+                    Column(
                         modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
-                        color = MaterialTheme.colorScheme.error,
-                    )
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(error, color = MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.height(8.dp))
+                        Button(onClick = { openWithExternalPlayer(context, item) }) {
+                            Text("Apri con player esterno")
+                        }
+                    }
                 }
             }
         }
     }
+}
+
+private fun openWithExternalPlayer(context: Context, item: LibraryItem) {
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(Uri.parse(item.contentUri), item.mimeType)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    runCatching { context.startActivity(Intent.createChooser(intent, "Apri con")) }
 }
