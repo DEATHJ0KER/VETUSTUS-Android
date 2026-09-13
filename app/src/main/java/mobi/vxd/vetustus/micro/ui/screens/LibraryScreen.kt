@@ -77,7 +77,7 @@ fun LibraryScreen(
             LibraryFilter("ALL", "Tutto", filterName) { filterName = it }
             LibraryFilter(MediaKind.VIDEO.name, "Video", filterName) { filterName = it }
             LibraryFilter(MediaKind.AUDIO.name, "Audio", filterName) { filterName = it }
-            LibraryFilter(MediaKind.ARCHIVE.name, "ZIP", filterName) { filterName = it }
+            LibraryFilter(MediaKind.ARCHIVE.name, "Archivi", filterName) { filterName = it }
         }
         if (items.isEmpty()) {
             Column(
@@ -88,7 +88,7 @@ fun LibraryScreen(
                 Icon(Icons.Default.VideoLibrary, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.height(10.dp))
                 Text(if (allItems.isEmpty()) "Libreria vuota" else "Nessun file in questa categoria")
-                if (allItems.isEmpty()) Text("I download completati appariranno qui.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (allItems.isEmpty()) Text("I media completati appariranno qui.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
             LazyColumn(
