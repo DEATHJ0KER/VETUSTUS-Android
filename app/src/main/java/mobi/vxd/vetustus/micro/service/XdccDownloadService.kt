@@ -151,61 +151,82 @@ class XdccDownloadService : Service() {
                 check(result.bytesWritten == partial.length()) { "Verifica del file parziale non riuscita" }
             }
 
-            container.downloads.state(id, DownloadState.PUBLISHING, "Salvataggio in Download/VETUSTUS Micro")
-            updateNotification(force = true)
-            val published = container.publisher.publishFile(partial, offer.filename)
-            val originalLibraryItem = published.toLibraryItem(id)
-            try {
-                container.library.insert(originalLibraryItem)
-                container.downloads.completed(
-                    id = id,
-                    contentUri = published.uri.toString(),
-                    mimeType = published.mimeType,
-                    filename = published.displayName,
-                    bytes = published.sizeBytes,
-                )
-            } catch (error: Throwable) {
-                container.library.delete(originalLibraryItem.id)
-                container.publisher.delete(published.uri)
-                throw error
-            }
-            partial.delete()
-
-            var finalUri = published.uri.toString()
-            var archiveWarning: Pair<String, String>? = null
-            if (FileTypes.extension(published.displayName) == "zip" && settings.autoExtractZip) {
-                container.downloads.state(id, DownloadState.EXTRACTING, "Estrazione ZIP protetta")
+            val archiveKind = FileTypes.archiveKind(offer.filename)
+            if (archiveKind != null && settings.autoExtractArchives) {
+                val archiveBytes = partial.length()
+                container.downloads.state(id, DownloadState.EXTRACTING, "Analisi archivio · estrazione solo audio/video")
                 updateNotification(force = true)
+
+                var extracted = emptyList<mobi.vxd.vetustus.micro.data.LibraryItem>()
+                var archiveWarning: Pair<String, String>? = null
                 try {
-                    val extracted = container.archiveManager.extract(id, published)
-                    if (extracted.isNotEmpty() && settings.deleteArchiveAfterExtract) {
-                        if (container.publisher.delete(published.uri)) {
-                            container.library.delete(originalLibraryItem.id)
-                            finalUri = ""
-                        }
+                    extracted = container.archiveManager.extractMedia(id, partial, offer.filename)
+                    if (extracted.isEmpty()) {
+                        archiveWarning = "ARCHIVE_NO_MEDIA" to "Nessun brano o video riconosciuto nell'archivio; archivio originale conservato"
                     }
                 } catch (cancelled: CancellationException) {
-                    archiveWarning = "ZIP_EXTRACTION_INTERRUPTED" to "Estrazione ZIP interrotta; l'archivio originale è disponibile"
+                    throw cancelled
                 } catch (error: Throwable) {
-                    archiveWarning = "ZIP_EXTRACTION_FAILED" to (error.message ?: "Estrazione ZIP non riuscita")
+                    archiveWarning = "ARCHIVE_EXTRACTION_FAILED" to (error.message ?: "Estrazione archivio non riuscita")
                 }
-            }
 
-            container.downloads.completed(
-                id = id,
-                contentUri = finalUri,
-                mimeType = published.mimeType,
-                filename = published.displayName,
-                bytes = published.sizeBytes,
-            )
-            archiveWarning?.let { (code, message) ->
-                container.downloads.state(
-                    id,
-                    DownloadState.COMPLETE,
-                    "Download completo · ZIP non estratto",
-                    code,
-                    message,
+                val keepOriginal = extracted.isEmpty() || !settings.deleteArchiveAfterExtract
+                var finalUri = ""
+                var finalMime = FileTypes.mimeType(offer.filename)
+                var finalName = offer.filename
+                if (keepOriginal) {
+                    container.downloads.state(id, DownloadState.PUBLISHING, "Conservazione archivio originale")
+                    updateNotification(force = true)
+                    try {
+                        val published = container.publisher.publishFile(partial, offer.filename)
+                        finalUri = published.uri.toString()
+                        finalMime = published.mimeType
+                        finalName = published.displayName
+                        if (extracted.isEmpty()) {
+                            container.library.insert(published.toLibraryItem(id))
+                        }
+                    } catch (error: Throwable) {
+                        if (extracted.isNotEmpty()) container.archiveManager.rollback(extracted)
+                        throw error
+                    }
+                }
+                partial.delete()
+                container.downloads.completed(
+                    id = id,
+                    contentUri = finalUri,
+                    mimeType = finalMime,
+                    filename = finalName,
+                    bytes = archiveBytes,
                 )
+                archiveWarning?.let { (code, message) ->
+                    container.downloads.state(
+                        id,
+                        DownloadState.COMPLETE,
+                        "Download completo · archivio conservato",
+                        code,
+                        message,
+                    )
+                }
+            } else {
+                container.downloads.state(id, DownloadState.PUBLISHING, "Salvataggio in Download/VETUSTUS Micro")
+                updateNotification(force = true)
+                val published = container.publisher.publishFile(partial, offer.filename)
+                val libraryItem = published.toLibraryItem(id)
+                try {
+                    container.library.insert(libraryItem)
+                    container.downloads.completed(
+                        id = id,
+                        contentUri = published.uri.toString(),
+                        mimeType = published.mimeType,
+                        filename = published.displayName,
+                        bytes = published.sizeBytes,
+                    )
+                } catch (error: Throwable) {
+                    container.library.delete(libraryItem.id)
+                    container.publisher.delete(published.uri)
+                    throw error
+                }
+                partial.delete()
             }
             updateNotification(force = true)
         } catch (cancelled: CancellationException) {
