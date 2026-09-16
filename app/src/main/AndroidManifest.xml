@@ -21,6 +21,10 @@
         android:theme="@style/Theme.VetustusMicro"
         android:usesCleartextTraffic="true">
 
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-0237921387561801~8009542401" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
