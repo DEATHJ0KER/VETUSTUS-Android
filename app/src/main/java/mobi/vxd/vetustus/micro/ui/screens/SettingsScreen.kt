@@ -1,5 +1,8 @@
 package mobi.vxd.vetustus.micro.ui.screens
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -37,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -45,6 +49,7 @@ import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import mobi.vxd.vetustus.micro.BuildConfig
 import mobi.vxd.vetustus.micro.R
+import mobi.vxd.vetustus.micro.ads.AppOpenAdManager
 import mobi.vxd.vetustus.micro.data.SettingsRepository
 
 private data class LanguageOption(val tag: String, val label: String)
@@ -67,11 +72,17 @@ private val languageOptions = listOf(
 )
 
 @Composable
-fun SettingsScreen(repository: SettingsRepository, modifier: Modifier = Modifier) {
+fun SettingsScreen(
+    repository: SettingsRepository,
+    ads: AppOpenAdManager,
+    modifier: Modifier = Modifier,
+) {
     val settings by repository.settings.collectAsStateWithLifecycle()
+    val privacyOptionsRequired by ads.privacyOptionsRequired.collectAsStateWithLifecycle()
     var nick by remember(settings.nick) { mutableStateOf(settings.nick) }
     val currentTag = AppCompatDelegate.getApplicationLocales().toLanguageTags().substringBefore(',')
     val uriHandler = LocalUriHandler.current
+    val activity = LocalContext.current.findActivity()
 
     Column(
         modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -167,6 +178,20 @@ fun SettingsScreen(repository: SettingsRepository, modifier: Modifier = Modifier
             )
         }
 
+        if (privacyOptionsRequired && activity != null) {
+            SettingsCard(Icons.Default.Security, stringResource(R.string.settings_ad_privacy)) {
+                Text(
+                    stringResource(R.string.settings_ad_privacy_detail),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(10.dp))
+                Button(onClick = { ads.showPrivacyOptions(activity) }) {
+                    Text(stringResource(R.string.manage_ad_privacy))
+                }
+            }
+        }
+
         SettingsCard(Icons.Default.Info, "VETUSTUS Micro ${BuildConfig.VERSION_NAME}") {
             Text(stringResource(R.string.settings_search_line), style = MaterialTheme.typography.bodySmall)
             Text(stringResource(R.string.settings_player_line), style = MaterialTheme.typography.bodySmall)
@@ -189,6 +214,12 @@ fun SettingsScreen(repository: SettingsRepository, modifier: Modifier = Modifier
         }
         Spacer(Modifier.height(12.dp))
     }
+}
+
+private fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }
 
 @Composable
