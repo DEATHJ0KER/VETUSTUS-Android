@@ -119,6 +119,9 @@
     <string name="settings_storage">Storage</string>
     <string name="public_destination">Public destination</string>
     <string name="storage_detail">.part files stay private until size and write checks pass. Pauses and errors do not leave corrupted copies in Download.</string>
+    <string name="settings_ad_privacy">Ad privacy</string>
+    <string name="settings_ad_privacy_detail">Manage the privacy choices used for Google AdMob advertising.</string>
+    <string name="manage_ad_privacy">Manage ad privacy</string>
     <string name="settings_alpha">First Alpha</string>
     <string name="settings_search_line">Search: xdcc.eu · Download: native IRC/DCC</string>
     <string name="settings_player_line">Player: Media3/ExoPlayer · audio/video with external fallback</string>
