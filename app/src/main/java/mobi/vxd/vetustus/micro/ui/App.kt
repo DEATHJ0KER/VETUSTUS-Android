@@ -113,6 +113,7 @@ fun VetustusMicroRoot(container: AppContainer) {
             )
             MainTab.SETTINGS -> SettingsScreen(
                 repository = container.settings,
+                ads = container.ads,
                 modifier = Modifier.padding(padding),
             )
         }
