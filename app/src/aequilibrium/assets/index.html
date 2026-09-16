@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0d10">
+  <title>Aequilibrium</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <img src="logo.svg" alt="Aequilibrium" class="brand-logo">
+      <span class="alpha">ANDROID ALPHA</span>
+    </header>
+
+    <main>
+      <section class="hero panel">
+        <p class="eyebrow">Quanto costa nel tuo comune?</p>
+        <h1>Controlla una stima in pochi secondi.</h1>
+        <p class="muted">Scegli categoria, servizio e comune. I dati arrivano direttamente dal motore Aequilibrium su vxd.mobi.</p>
+      </section>
+
+      <section class="panel search-panel">
+        <label for="category">Categoria</label>
+        <select id="category"><option value="">Caricamento…</option></select>
+
+        <label for="service">Servizio</label>
+        <select id="service" disabled><option value="">Seleziona prima una categoria</option></select>
+
+        <label for="city">Comune</label>
+        <div class="autocomplete">
+          <input id="city" type="search" autocomplete="off" placeholder="Es. Torino">
+          <div id="cityResults" class="results" hidden></div>
+        </div>
+        <div id="selectedCity" class="selected-city" hidden></div>
+
+        <button id="estimateButton" class="primary" disabled>Calcola stima</button>
+        <p id="status" class="status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section id="estimate" class="panel estimate" hidden>
+        <div class="estimate-head">
+          <div>
+            <p id="estimateService" class="eyebrow"></p>
+            <h2 id="estimateCity"></h2>
+          </div>
+          <button id="shareButton" class="icon-button" title="Condividi">↗</button>
+        </div>
+        <div class="price-main" id="priceAvg"></div>
+        <div class="range"><span id="priceMin"></span><span>→</span><span id="priceMax"></span></div>
+        <div class="meta-row">
+          <span id="reliability" class="badge"></span>
+          <span id="updatedAt" class="muted small"></span>
+        </div>
+        <a id="webLink" class="secondary-link" target="_blank" rel="noopener">Apri la scheda completa sul sito</a>
+      </section>
+
+      <section id="recentsPanel" class="panel" hidden>
+        <div class="section-title"><h2>Recenti</h2><button id="clearRecents" class="text-button">Pulisci</button></div>
+        <div id="recents" class="recent-list"></div>
+      </section>
+    </main>
+
+    <footer>VxD · Aequilibrium Android · alpha 0.1.0</footer>
+  </div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
